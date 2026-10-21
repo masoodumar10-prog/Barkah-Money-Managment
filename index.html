@@ -9,26 +9,30 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <style>
-    body { background-color: #0d131f; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    body { background-color: #0b1120; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .glass-card { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
     .btn-gold { background: linear-gradient(135deg, #d97706, #b45309); }
     .btn-emerald { background: linear-gradient(135deg, #059669, #047857); }
+    .btn-sky { background: linear-gradient(135deg, #0284c7, #0369a1); }
   </style>
 </head>
 <body class="p-3 sm:p-6 pb-20">
 
   <!-- Header -->
-  <header class="flex flex-wrap items-center justify-between gap-3 mb-6">
+  <header class="flex flex-wrap items-center justify-between gap-3 mb-5">
     <div>
       <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-amber-400">BARAKAH MONEY</h1>
       <div class="flex items-center gap-2 mt-1">
-        <span class="text-xs text-slate-400">Cash + UPI & Manual Pots</span>
-        <span id="sync-status-badge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Connecting Cloud...</span>
+        <span class="text-xs text-slate-400">Cash in Hand + Bank & Vaults</span>
+        <span id="sync-status-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Connecting Cloud...</span>
       </div>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       <button onclick="openSyncModal()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
         <span>☁️</span> Auto-Sync
+      </button>
+      <button onclick="downloadBackup()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg">
+        💾 Backup
       </button>
       <button onclick="openMonthAudit()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg">
         📊 Month Audit
@@ -39,40 +43,75 @@
     </div>
   </header>
 
-  <!-- Live Vaults Balance Header -->
-  <section class="mb-6">
+  <!-- Physical Money: Cash vs Online Bank Balances -->
+  <section class="mb-5">
     <div class="flex items-center justify-between mb-2">
-      <h2 class="text-xs uppercase tracking-wider text-amber-500 font-bold">Tijarat & Barakah Vaults (Running Balance)</h2>
-      <span class="text-[11px] text-slate-400">Pehle din se aaj tak continuous live</span>
+      <h2 class="text-xs uppercase tracking-wider text-amber-400 font-bold">🔴 Physical Money in Hand & Bank (Drawer vs Bank Balance)</h2>
+      <span class="text-[11px] text-slate-400">Running Total</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- Cash in Hand -->
+      <div class="glass-card p-4 rounded-xl border-l-4 border-l-emerald-500 shadow-md">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-emerald-400 flex items-center gap-1">💵 Cash in Hand (Gulle Ka Naqad)</span>
+          <span class="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-2 py-0.5 rounded">Drawer Tally</span>
+        </div>
+        <div id="physical-cash" class="text-2xl font-black text-slate-50 mt-1">₹0</div>
+        <div class="text-[11px] text-slate-400 mt-2 flex justify-between border-t border-slate-800/80 pt-2">
+          <span>Total Aamdan: <b id="physical-cash-in" class="text-emerald-300">₹0</b></span>
+          <span>Kharch/Gaya: <b id="physical-cash-out" class="text-rose-400">₹0</b></span>
+        </div>
+      </div>
+
+      <!-- Online / UPI Balance -->
+      <div class="glass-card p-4 rounded-xl border-l-4 border-l-sky-500 shadow-md">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-sky-400 flex items-center gap-1">📱 Online / UPI Balance (Bank Account)</span>
+          <span class="text-[10px] bg-sky-950/80 text-sky-300 border border-sky-800/60 px-2 py-0.5 rounded">Karobar Bank</span>
+        </div>
+        <div id="physical-upi" class="text-2xl font-black text-slate-50 mt-1">₹0</div>
+        <div class="text-[11px] text-slate-400 mt-2 flex justify-between border-t border-slate-800/80 pt-2">
+          <span>Total Received: <b id="physical-upi-in" class="text-sky-300">₹0</b></span>
+          <span>Online Spent: <b id="physical-upi-out" class="text-rose-400">₹0</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tijarat Vaults / Pots Running Balances -->
+  <section class="mb-5">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-xs uppercase tracking-wider text-slate-400 font-bold">Tijarat & Barakah Vaults (Pots Allotment)</h2>
+      <span class="text-[11px] text-slate-400">Continuous Running</span>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="glass-card p-3 rounded-xl border-l-4 border-l-emerald-500">
         <div class="text-[11px] text-slate-400 font-medium">🏠 Ghar (Nafaqah)</div>
-        <div id="vault-family" class="text-lg font-bold text-emerald-400 mt-1">₹0</div>
+        <div id="vault-family" class="text-lg font-bold text-emerald-400 mt-0.5">₹0</div>
         <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
           <span>Aya: <b id="vault-family-in" class="text-slate-300">₹0</b></span>
-          <span>Kharch: <b id="vault-family-out" class="text-rose-400">₹0</b></span>
+          <span>Gaya: <b id="vault-family-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
       <div class="glass-card p-3 rounded-xl border-l-4 border-l-sky-500">
-        <div class="text-[11px] text-slate-400 font-medium">🛡️ Dawa / Emergency</div>
-        <div id="vault-emergency" class="text-lg font-bold text-sky-400 mt-1">₹0</div>
+        <div class="text-[11px] text-slate-400 font-medium">🛡️ Dawa / Health Shield</div>
+        <div id="vault-emergency" class="text-lg font-bold text-sky-400 mt-0.5">₹0</div>
         <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
           <span>Aya: <b id="vault-emergency-in" class="text-slate-300">₹0</b></span>
-          <span>Kharch: <b id="vault-emergency-out" class="text-rose-400">₹0</b></span>
+          <span>Gaya: <b id="vault-emergency-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
       <div class="glass-card p-3 rounded-xl border-l-4 border-l-amber-500">
-        <div class="text-[11px] text-slate-400 font-medium">💼 Dukan Buffer / Karz</div>
-        <div id="vault-buffer" class="text-lg font-bold text-amber-400 mt-1">₹0</div>
+        <div class="text-[11px] text-slate-400 font-medium">💼 Dukan Reserve (Karz/Buffer)</div>
+        <div id="vault-buffer" class="text-lg font-bold text-amber-400 mt-0.5">₹0</div>
         <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
           <span>Aya: <b id="vault-buffer-in" class="text-slate-300">₹0</b></span>
-          <span>Kharch: <b id="vault-buffer-out" class="text-rose-400">₹0</b></span>
+          <span>Gaya: <b id="vault-buffer-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
       <div class="glass-card p-3 rounded-xl border-l-4 border-l-purple-500">
         <div class="text-[11px] text-slate-400 font-medium">🤲 Sadaqah Gullak</div>
-        <div id="vault-sadaqah" class="text-lg font-bold text-purple-400 mt-1">₹0</div>
+        <div id="vault-sadaqah" class="text-lg font-bold text-purple-400 mt-0.5">₹0</div>
         <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
           <span>Aya: <b id="vault-sadaqah-in" class="text-slate-300">₹0</b></span>
           <span>Diya: <b id="vault-sadaqah-out" class="text-rose-400">₹0</b></span>
@@ -81,29 +120,29 @@
     </div>
   </section>
 
-  <!-- Month Aggregates -->
-  <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+  <!-- Month Aggregates Summary -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
     <div class="glass-card p-3 rounded-xl">
-      <div class="text-[11px] text-slate-400">Mahana Bikri (Total)</div>
-      <div id="sum-sales" class="text-lg font-bold text-slate-100 mt-1">₹0</div>
+      <div class="text-[11px] text-slate-400">Mahana Bikri (Total Sales)</div>
+      <div id="sum-sales" class="text-lg font-bold text-slate-100 mt-0.5">₹0</div>
       <div class="text-[10px] text-slate-400 mt-1">
         Cash: <span id="sum-cash" class="text-emerald-400">₹0</span> | UPI: <span id="sum-upi" class="text-sky-400">₹0</span>
       </div>
     </div>
     <div class="glass-card p-3 rounded-xl">
       <div class="text-[11px] text-slate-400">Dukan Maal (Restock)</div>
-      <div id="sum-restock" class="text-lg font-bold text-rose-400 mt-1">₹0</div>
+      <div id="sum-restock" class="text-lg font-bold text-rose-400 mt-0.5">₹0</div>
       <div class="text-[10px] text-slate-400 mt-1">Ra's al-Mal (Separate)</div>
     </div>
     <div class="glass-card p-3 rounded-xl">
       <div class="text-[11px] text-slate-400">Mahana Net Munafa</div>
-      <div id="sum-profit" class="text-lg font-bold text-emerald-400 mt-1">₹0</div>
-      <div class="text-[10px] text-slate-400 mt-1">Bikri minus Maal</div>
+      <div id="sum-profit" class="text-lg font-bold text-emerald-400 mt-0.5">₹0</div>
+      <div class="text-[10px] text-slate-400 mt-1">Bikri minus Maal Restock</div>
     </div>
     <div class="glass-card p-3 rounded-xl">
-      <div class="text-[11px] text-slate-400">Mahana Kharch (Pots)</div>
-      <div id="sum-spent-total" class="text-lg font-bold text-rose-300 mt-1">₹0</div>
-      <div class="text-[10px] text-slate-400 mt-1">Ghar + Dawai + Diya</div>
+      <div class="text-[11px] text-slate-400">Mahana Kul Kharch (Spent)</div>
+      <div id="sum-spent-total" class="text-lg font-bold text-rose-300 mt-0.5">₹0</div>
+      <div class="text-[10px] text-slate-400 mt-1">Ghar + Dawai + Reserve + Sadaqah</div>
     </div>
   </section>
 
@@ -112,9 +151,9 @@
     <div class="flex items-center justify-between mb-4">
       <h3 id="cal-month-title" class="text-sm font-bold text-slate-200">Month Calendar</h3>
       <div class="flex items-center gap-1.5">
-        <button onclick="changeMonth(-1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs">&lt;</button>
-        <button onclick="goToday()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs">Today</button>
-        <button onclick="changeMonth(1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs">&gt;</button>
+        <button onclick="changeMonth(-1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs">&lt;</button>
+        <button onclick="goToday()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs font-semibold">Today</button>
+        <button onclick="changeMonth(1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs">&gt;</button>
       </div>
     </div>
     <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 mb-2 font-semibold">
@@ -123,88 +162,120 @@
     <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
   </section>
 
-  <!-- Modals -->
+  <!-- MODALS -->
 
   <!-- 1. Daily Entry Modal -->
   <div id="entry-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
-    <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-4 sm:p-5 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
         <div>
-          <h3 class="text-base font-bold text-amber-400">Rozana Hisab & Pot Allocation</h3>
-          <p id="entry-date-label" class="text-xs text-slate-400 mt-0.5">Date</p>
+          <h3 class="text-base font-bold text-amber-400">Rozana Hisab & Balance Allocation</h3>
+          <p id="entry-date-label" class="text-xs text-slate-400 mt-0.5">Tareekh: --</p>
         </div>
         <button onclick="closeModal('entry-modal')" class="text-slate-400 hover:text-white text-lg">✕</button>
       </div>
 
-      <!-- Sales Inputs -->
-      <div class="space-y-3 mb-4">
+      <!-- Step 1: Bikri (Income) -->
+      <div class="space-y-2 mb-3">
+        <div class="text-xs font-bold text-emerald-400 uppercase tracking-wide">1. Aj Ki Bikri (Sales In)</div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-[11px] text-slate-400">Cash Bikri (₹)</label>
+            <label class="text-[11px] text-slate-300">💵 Cash Bikri (₹)</label>
             <input type="number" id="inp-cash" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-emerald-500" value="0">
           </div>
           <div>
-            <label class="text-[11px] text-slate-400">Online/UPI Bikri (₹)</label>
+            <label class="text-[11px] text-slate-300">📱 Online / UPI Bikri (₹)</label>
             <input type="number" id="inp-upi" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-sky-500" value="0">
           </div>
         </div>
         <div>
-          <label class="text-[11px] text-rose-400">Dukan Maal / Restock Cost (₹)</label>
-          <input type="number" id="inp-restock" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-rose-900/40 rounded-lg px-2.5 py-1.5 text-sm text-rose-300 focus:outline-rose-500" value="0">
+          <label class="text-[11px] text-rose-300">📦 Dukan Maal / Restock Cost (Ra's al-Mal) (₹)</label>
+          <input type="number" id="inp-restock" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-rose-900/50 rounded-lg px-2.5 py-1.5 text-sm text-rose-300 focus:outline-rose-500" value="0">
         </div>
-        <div class="bg-slate-800/60 p-2.5 rounded-lg flex items-center justify-between text-xs">
+        <div class="bg-slate-800/70 p-2.5 rounded-lg flex items-center justify-between text-xs">
           <span class="text-slate-400">Aj Ka Saaf Munafa (Net Profit):</span>
           <span id="label-net-profit" class="font-bold text-emerald-400 text-sm">₹0</span>
         </div>
       </div>
 
-      <!-- Pot Allocation & Spent Inputs -->
-      <div class="border-t border-slate-800 pt-3 space-y-2.5">
+      <!-- Step 2: Physical Kharch (Where Money Left) -->
+      <div class="border-t border-slate-800 pt-3 space-y-2 mb-3">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-300">Pot Allocation & Daily Spent</span>
-          <span id="label-unallocated" class="text-[11px] text-amber-400">Baaki: ₹0</span>
+          <span class="text-xs font-bold text-rose-400 uppercase tracking-wide">2. Aj Ka Kharch (Payment Mode)</span>
+          <span class="text-[10px] text-slate-400">Kahan se paisa bahar gaya?</span>
         </div>
-
-        <!-- Family -->
-        <div class="bg-slate-800/40 p-2 rounded-lg space-y-1">
-          <span class="text-xs text-slate-300 font-medium">🏠 Ghar (Nafaqah)</span>
-          <div class="grid grid-cols-2 gap-2">
-            <input type="number" id="inp-fam-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-emerald-300">
-            <input type="number" id="inp-fam-out" placeholder="Kharch (Out ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-800">
+            <label class="text-[11px] text-emerald-400 font-semibold">💵 Cash Gulle Se Kharch (₹)</label>
+            <input type="number" id="inp-cash-kharch" placeholder="₹0" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-rose-300 mt-1 focus:outline-rose-500">
+            <span class="text-[10px] text-slate-500">Rashan, local saman, etc</span>
           </div>
-        </div>
-
-        <!-- Emergency -->
-        <div class="bg-slate-800/40 p-2 rounded-lg space-y-1">
-          <span class="text-xs text-slate-300 font-medium">🛡️ Dawa / Emergency</span>
-          <div class="grid grid-cols-2 gap-2">
-            <input type="number" id="inp-eme-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-sky-300">
-            <input type="number" id="inp-eme-out" placeholder="Kharch (Out ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
-          </div>
-        </div>
-
-        <!-- Business Buffer -->
-        <div class="bg-slate-800/40 p-2 rounded-lg space-y-1">
-          <span class="text-xs text-slate-300 font-medium">💼 Dukan Buffer / Karz</span>
-          <div class="grid grid-cols-2 gap-2">
-            <input type="number" id="inp-buf-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300">
-            <input type="number" id="inp-buf-out" placeholder="Kharch (Out ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
-          </div>
-        </div>
-
-        <!-- Sadaqah -->
-        <div class="bg-slate-800/40 p-2 rounded-lg space-y-1">
-          <span class="text-xs text-slate-300 font-medium">🤲 Sadaqah Gullak</span>
-          <div class="grid grid-cols-2 gap-2">
-            <input type="number" id="inp-sad-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-purple-300">
-            <input type="number" id="inp-sad-out" placeholder="Kharch / Diya (₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-800">
+            <label class="text-[11px] text-sky-400 font-semibold">📱 Bank / UPI Se Kharch (₹)</label>
+            <input type="number" id="inp-upi-kharch" placeholder="₹0" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-rose-300 mt-1 focus:outline-rose-500">
+            <span class="text-[10px] text-slate-500">Wholesale, scan, transfer</span>
           </div>
         </div>
       </div>
 
+      <!-- Step 3: Cash <-> Bank Internal Transfer -->
+      <div class="border-t border-slate-800 pt-3 space-y-2 mb-3">
+        <div class="text-xs font-bold text-amber-400 uppercase tracking-wide">3. Cash ↔ Bank Transfer (Optional)</div>
+        <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-800 grid grid-cols-2 gap-2 items-center">
+          <div>
+            <label class="text-[11px] text-slate-300">Transfer Direction</label>
+            <select id="inp-transfer-dir" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white mt-1">
+              <option value="none">Koi Transfer Nahi</option>
+              <option value="cash_to_bank">Gulle Se Cash Bank Me Jama Kiya</option>
+              <option value="bank_to_cash">Bank/ATM Se Nikaal Kar Gulle Me Dala</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-300">Transfer Amount (₹)</label>
+            <input type="number" id="inp-transfer-amt" placeholder="₹0" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300 mt-1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Vaults / Pots Allocation -->
+      <div class="border-t border-slate-800 pt-3 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-purple-400 uppercase tracking-wide">4. Munafa Pots Me Jama & Spent</span>
+          <span id="label-unallocated" class="text-[11px] text-amber-400">Baaki Munafa: ₹0</span>
+        </div>
+
+        <!-- Family -->
+        <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
+          <span class="text-xs text-slate-300 font-medium w-1/3">🏠 Ghar (Nafaqah)</span>
+          <input type="number" id="inp-fam-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-emerald-300">
+          <input type="number" id="inp-fam-out" placeholder="Kharch (Out ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+        </div>
+
+        <!-- Emergency -->
+        <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
+          <span class="text-xs text-slate-300 font-medium w-1/3">🛡️ Dawa / Emergency</span>
+          <input type="number" id="inp-eme-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-sky-300">
+          <input type="number" id="inp-eme-out" placeholder="Kharch (Out ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+        </div>
+
+        <!-- Shop Reserve -->
+        <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
+          <span class="text-xs text-slate-300 font-medium w-1/3">💼 Dukan Reserve</span>
+          <input type="number" id="inp-buf-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300">
+          <input type="number" id="inp-buf-out" placeholder="Kharch (Out ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+        </div>
+
+        <!-- Sadaqah -->
+        <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
+          <span class="text-xs text-slate-300 font-medium w-1/3">🤲 Sadaqah Gullak</span>
+          <input type="number" id="inp-sad-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-purple-300">
+          <input type="number" id="inp-sad-out" placeholder="Diya (Out ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+        </div>
+      </div>
+
       <div class="mt-4 flex gap-2">
-        <button onclick="saveDailyEntry()" class="flex-1 btn-gold text-white font-semibold py-2 rounded-lg text-xs shadow-md">
-          Save Hisab
+        <button onclick="saveDailyEntry()" class="flex-1 btn-gold text-white font-semibold py-2.5 rounded-lg text-xs shadow-md">
+          💾 Save Rozana Hisab
         </button>
         <button onclick="closeModal('entry-modal')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs hover:bg-slate-700">
           Cancel
@@ -215,12 +286,12 @@
 
   <!-- 2. Month Audit Modal -->
   <div id="audit-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
-    <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl p-5">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-        <h3 id="audit-modal-title" class="text-sm font-bold text-amber-400">Month-End Audit Summary</h3>
+        <h3 id="audit-modal-title" class="text-sm font-bold text-amber-400">Month-End Physical & Vault Audit</h3>
         <button onclick="closeModal('audit-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
-      <div id="audit-content" class="space-y-3 text-xs"></div>
+      <div id="audit-content" class="space-y-4 text-xs"></div>
     </div>
   </div>
 
@@ -245,7 +316,6 @@
   </div>
 
   <script>
-    // Embedded Firebase Config (Configured for project 'barakah-money')
     const FIREBASE_CONFIG = {
       apiKey: "AIzaSyCOyMS8IurWt3PknKrxWwp-jLwv25cC7g0",
       authDomain: "barakah-money.firebaseapp.com",
@@ -266,7 +336,6 @@
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    // Initialize Firebase Cloud Sync
     function initFirebase() {
       const badge = document.getElementById("sync-status-badge");
       try {
@@ -277,9 +346,8 @@
 
         firebase.auth().signInAnonymously().then(() => {
           badge.textContent = "☁️ Live Cloud Sync";
-          badge.className = "text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700";
+          badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700";
 
-          // Real-time listener
           db.collection("accounts").doc(syncDocId).onSnapshot((doc) => {
             if (doc.exists && doc.data() && doc.data().ledger) {
               ledger = doc.data().ledger;
@@ -290,8 +358,8 @@
             console.warn("Firestore sync warning:", err);
             badge.textContent = "Offline (Local)";
           });
-        }).catch((authErr) => {
-          console.warn("Auth note:", authErr);
+        }).catch((err) => {
+          console.warn("Auth note:", err);
           badge.textContent = "Cloud Active";
         });
       } catch (err) {
@@ -321,12 +389,55 @@
     }
 
     function renderAll() {
+      renderPhysicalBalances();
       renderVaults();
       renderMonthSummary();
       renderCalendar();
     }
 
-    // Running Cumulative Vaults
+    // 1. Physical Balances: Cash in Hand vs Bank UPI
+    function renderPhysicalBalances() {
+      let cashIn = 0, cashOut = 0;
+      let upiIn = 0, upiOut = 0;
+
+      Object.values(ledger).forEach(e => {
+        const cIn = Number(e.cash || 0);
+        const uIn = Number(e.upi || 0);
+        cashIn += cIn;
+        upiIn += uIn;
+
+        // Backward compatibility: agar purani entry me cashKharch mention na ho toh fallback
+        let cOut = (e.cashKharch !== undefined && e.cashKharch !== "") ? Number(e.cashKharch) : (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0));
+        let uOut = (e.upiKharch !== undefined && e.upiKharch !== "") ? Number(e.upiKharch) : (Number(e.restock || 0) + Number(e.bufOut || 0));
+
+        // Transfers
+        const tDir = e.transferDir || "none";
+        const tAmt = Number(e.transferAmt || 0);
+        if (tDir === "cash_to_bank") {
+          cOut += tAmt;
+          uIn += tAmt;
+        } else if (tDir === "bank_to_cash") {
+          uOut += tAmt;
+          cashIn += tAmt;
+        }
+
+        cashOut += cOut;
+        upiOut += uOut;
+      });
+
+      const netCash = cashIn - cashOut;
+      const netUpi = upiIn - upiOut;
+
+      document.getElementById("physical-cash").textContent = "₹" + netCash.toLocaleString("en-IN");
+      document.getElementById("physical-cash-in").textContent = "₹" + cashIn.toLocaleString("en-IN");
+      document.getElementById("physical-cash-out").textContent = "₹" + cashOut.toLocaleString("en-IN");
+
+      document.getElementById("physical-upi").textContent = "₹" + netUpi.toLocaleString("en-IN");
+      document.getElementById("physical-upi-in").textContent = "₹" + upiIn.toLocaleString("en-IN");
+      document.getElementById("physical-upi-out").textContent = "₹" + upiOut.toLocaleString("en-IN");
+    }
+
+    // 2. Vaults Cumulative
     function renderVaults() {
       let fin = 0, fout = 0;
       let ein = 0, eout = 0;
@@ -357,7 +468,7 @@
       document.getElementById("vault-sadaqah-out").textContent = "₹" + sout.toLocaleString("en-IN");
     }
 
-    // Month Summaries
+    // 3. Month Aggregates
     function renderMonthSummary() {
       const y = currentViewDate.getFullYear();
       const m = currentViewDate.getMonth() + 1;
@@ -388,7 +499,7 @@
       document.getElementById("sum-spent-total").textContent = "₹" + spent.toLocaleString("en-IN");
     }
 
-    // Calendar
+    // 4. Calendar
     function renderCalendar() {
       const grid = document.getElementById("calendar-grid");
       grid.innerHTML = "";
@@ -439,7 +550,7 @@
       renderAll();
     }
 
-    // Entry Modal Management
+    // Entry Modal
     function openEntryModal(dateStr) {
       activeDateStr = dateStr || getTodayStr();
       document.getElementById("entry-date-label").textContent = `Tareekh: ${activeDateStr}`;
@@ -448,6 +559,12 @@
       document.getElementById("inp-cash").value = e.cash || 0;
       document.getElementById("inp-upi").value = e.upi || 0;
       document.getElementById("inp-restock").value = e.restock || 0;
+
+      document.getElementById("inp-cash-kharch").value = (e.cashKharch !== undefined) ? e.cashKharch : "";
+      document.getElementById("inp-upi-kharch").value = (e.upiKharch !== undefined) ? e.upiKharch : "";
+
+      document.getElementById("inp-transfer-dir").value = e.transferDir || "none";
+      document.getElementById("inp-transfer-amt").value = e.transferAmt || "";
 
       document.getElementById("inp-fam-in").value = e.famIn || "";
       document.getElementById("inp-fam-out").value = e.famOut || "";
@@ -494,6 +611,10 @@
         cash: Number(document.getElementById("inp-cash").value) || 0,
         upi: Number(document.getElementById("inp-upi").value) || 0,
         restock: Number(document.getElementById("inp-restock").value) || 0,
+        cashKharch: Number(document.getElementById("inp-cash-kharch").value) || 0,
+        upiKharch: Number(document.getElementById("inp-upi-kharch").value) || 0,
+        transferDir: document.getElementById("inp-transfer-dir").value,
+        transferAmt: Number(document.getElementById("inp-transfer-amt").value) || 0,
         famIn: Number(document.getElementById("inp-fam-in").value) || 0,
         famOut: Number(document.getElementById("inp-fam-out").value) || 0,
         emeIn: Number(document.getElementById("inp-eme-in").value) || 0,
@@ -509,15 +630,40 @@
       closeModal("entry-modal");
     }
 
+    // Month Audit Report
     function openMonthAudit() {
       const y = currentViewDate.getFullYear();
       const m = currentViewDate.getMonth() + 1;
       const prefix = `${y}-${String(m).padStart(2, '0')}`;
 
+      let mCashIn = 0, mCashOut = 0;
+      let mUpiIn = 0, mUpiOut = 0;
       let fin = 0, fout = 0, ein = 0, eout = 0, bin = 0, bout = 0, sin = 0, sout = 0;
+
       Object.keys(ledger).forEach(k => {
         if (k.startsWith(prefix)) {
           const e = ledger[k];
+          const cIn = Number(e.cash || 0);
+          const uIn = Number(e.upi || 0);
+          mCashIn += cIn;
+          mUpiIn += uIn;
+
+          let cOut = (e.cashKharch !== undefined && e.cashKharch !== "") ? Number(e.cashKharch) : (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0));
+          let uOut = (e.upiKharch !== undefined && e.upiKharch !== "") ? Number(e.upiKharch) : (Number(e.restock || 0) + Number(e.bufOut || 0));
+
+          const tDir = e.transferDir || "none";
+          const tAmt = Number(e.transferAmt || 0);
+          if (tDir === "cash_to_bank") {
+            cOut += tAmt;
+            mUpiIn += tAmt;
+          } else if (tDir === "bank_to_cash") {
+            uOut += tAmt;
+            mCashIn += tAmt;
+          }
+
+          mCashOut += cOut;
+          mUpiOut += uOut;
+
           fin += Number(e.famIn || 0); fout += Number(e.famOut || 0);
           ein += Number(e.emeIn || 0); eout += Number(e.emeOut || 0);
           bin += Number(e.bufIn || 0); bout += Number(e.bufOut || 0);
@@ -525,23 +671,63 @@
         }
       });
 
+      const netMCash = mCashIn - mCashOut;
+      const netMUpi = mUpiIn - mUpiOut;
+
       const content = document.getElementById("audit-content");
       content.innerHTML = `
-        <div class="bg-slate-800 p-2.5 rounded-lg space-y-1">
-          <div class="font-bold text-emerald-400">🏠 Ghar (Nafaqah)</div>
-          <div class="flex justify-between text-slate-300"><span>Jama: ₹${fin}</span><span>Kharch: ₹${fout}</span><span>Bacha: ₹${fin - fout}</span></div>
+        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+          <div class="font-bold text-amber-400 mb-2">💵 Mahana Cash vs Bank Tally</div>
+          <table class="w-full text-left text-[11px]">
+            <thead>
+              <tr class="text-slate-400 border-b border-slate-700">
+                <th class="py-1">Head</th>
+                <th>💵 Cash</th>
+                <th>📱 Bank (UPI)</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody class="text-slate-200 divide-y divide-slate-800">
+              <tr>
+                <td class="py-1.5 text-emerald-400 font-medium">Bikri / Received</td>
+                <td>₹${mCashIn.toLocaleString('en-IN')}</td>
+                <td>₹${mUpiIn.toLocaleString('en-IN')}</td>
+                <td class="font-bold">₹${(mCashIn + mUpiIn).toLocaleString('en-IN')}</td>
+              </tr>
+              <tr>
+                <td class="py-1.5 text-rose-400 font-medium">Kharch / Out</td>
+                <td>₹${mCashOut.toLocaleString('en-IN')}</td>
+                <td>₹${mUpiOut.toLocaleString('en-IN')}</td>
+                <td class="font-bold">₹${(mCashOut + mUpiOut).toLocaleString('en-IN')}</td>
+              </tr>
+              <tr class="font-bold text-amber-300">
+                <td class="py-1.5">Mahana Bacha</td>
+                <td>₹${netMCash.toLocaleString('en-IN')}</td>
+                <td>₹${netMUpi.toLocaleString('en-IN')}</td>
+                <td class="text-emerald-400">₹${(netMCash + netMUpi).toLocaleString('en-IN')}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="bg-slate-800 p-2.5 rounded-lg space-y-1">
-          <div class="font-bold text-sky-400">🛡️ Dawa / Emergency</div>
-          <div class="flex justify-between text-slate-300"><span>Jama: ₹${ein}</span><span>Kharch: ₹${eout}</span><span>Bacha: ₹${ein - eout}</span></div>
-        </div>
-        <div class="bg-slate-800 p-2.5 rounded-lg space-y-1">
-          <div class="font-bold text-amber-400">💼 Dukan Buffer</div>
-          <div class="flex justify-between text-slate-300"><span>Jama: ₹${bin}</span><span>Kharch: ₹${bout}</span><span>Bacha: ₹${bin - bout}</span></div>
-        </div>
-        <div class="bg-slate-800 p-2.5 rounded-lg space-y-1">
-          <div class="font-bold text-purple-400">🤲 Sadaqah Gullak</div>
-          <div class="flex justify-between text-slate-300"><span>Jama: ₹${sin}</span><span>Diya: ₹${sout}</span><span>Bacha: ₹${sin - sout}</span></div>
+
+        <div class="space-y-2">
+          <div class="font-bold text-slate-300">Vaults Running Standing (Is Mahine)</div>
+          <div class="bg-slate-800 p-2.5 rounded-lg flex justify-between text-[11px]">
+            <span class="text-emerald-400 font-medium">🏠 Ghar (Nafaqah)</span>
+            <span>Aya: ₹${fin} | Gaya: ₹${fout} | <b class="text-emerald-300">Bacha: ₹${fin - fout}</b></span>
+          </div>
+          <div class="bg-slate-800 p-2.5 rounded-lg flex justify-between text-[11px]">
+            <span class="text-sky-400 font-medium">🛡️ Dawa Shield</span>
+            <span>Aya: ₹${ein} | Gaya: ₹${eout} | <b class="text-sky-300">Bacha: ₹${ein - eout}</b></span>
+          </div>
+          <div class="bg-slate-800 p-2.5 rounded-lg flex justify-between text-[11px]">
+            <span class="text-amber-400 font-medium">💼 Dukan Reserve</span>
+            <span>Aya: ₹${bin} | Gaya: ₹${bout} | <b class="text-amber-300">Bacha: ₹${bin - bout}</b></span>
+          </div>
+          <div class="bg-slate-800 p-2.5 rounded-lg flex justify-between text-[11px]">
+            <span class="text-purple-400 font-medium">🤲 Sadaqah Gullak</span>
+            <span>Aya: ₹${sin} | Diya: ₹${sout} | <b class="text-purple-300">Bacha: ₹${sin - sout}</b></span>
+          </div>
         </div>
       `;
       document.getElementById("audit-modal").classList.remove("hidden");
@@ -564,12 +750,19 @@
       }
     }
 
+    function downloadBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ledger, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `barakah_money_backup_${getTodayStr()}.json`);
+      dlAnchor.click();
+    }
+
     function closeModal(id) {
       document.getElementById(id).classList.add("hidden");
       document.getElementById(id).classList.remove("flex");
     }
 
-    // Initialize on launch
     window.onload = function() {
       loadLocal();
       renderAll();
