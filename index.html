@@ -45,6 +45,22 @@
       -moz-appearance: textfield;
     }
   </style>
+  <!-- Firebase SDKs for Multi-Device Auto-Sync -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    window.FirebaseLib = {
+      initializeApp,
+      getAuth,
+      signInAnonymously,
+      getFirestore,
+      doc,
+      setDoc,
+      onSnapshot
+    };
+  </script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-28 select-none sm:select-auto">
 
@@ -64,13 +80,20 @@
           <h1 class="text-base sm:text-lg font-bold cinzel tracking-wide text-amber-300 leading-tight">
             BARAKAH MONEY
           </h1>
-          <p class="text-[11px] text-emerald-400 font-medium">
-            Cash + UPI & Manual Pots Allocation
+          <p class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+            <span>Cash + UPI & Manual Pots</span>
+            <span id="cloudStatusBadge" class="inline-flex items-center gap-1 px-1.5 py-0.2 text-[9px] rounded-md bg-slate-800 text-slate-400 border border-slate-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline / Local
+            </span>
           </p>
         </div>
       </div>
 
       <div class="flex items-center gap-2">
+        <button id="openSyncModalBtn" class="touch-target p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs flex items-center gap-1 border border-amber-500/30 shadow-sm" title="Laptop aur Mobile Sync Karein">
+          <span>☁️</span>
+          <span class="hidden sm:inline font-semibold">Auto-Sync</span>
+        </button>
         <button id="manageDataBtn" class="touch-target p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1 border border-slate-700/60" title="Data Backup & Restore">
           <span>💾</span>
           <span class="hidden sm:inline">Backup/Restore</span>
@@ -610,6 +633,78 @@
     </div>
   </div>
 
+  <!-- CLOUD AUTO-SYNC MODAL (MULTI-DEVICE LAPTOP + MOBILE) -->
+  <div id="syncModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md max-h-[92vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Laptop & Mobile Sync</span>
+          <h3 class="text-base font-bold text-white flex items-center gap-2 mt-0.5">
+            <span>☁️</span> Real-Time Cloud Sync (100% Free)
+          </h3>
+        </div>
+        <button id="closeSyncModalBtn" class="p-1 text-slate-400 hover:text-white rounded-lg">✕</button>
+      </div>
+
+      <div class="text-xs text-slate-300 space-y-2">
+        <p>
+          Is setup ke baad aap chahe <strong>Laptop se hisab likhein</strong> ya <strong>Mobile se</strong>, dono me turant bina kisi upload/download ke live data sync ho jayega!
+        </p>
+      </div>
+
+      <div class="space-y-3">
+        <!-- Sync Key / Passcode -->
+        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700 space-y-1.5">
+          <label class="block text-[11px] font-bold text-emerald-300">
+            🔑 Aapka Secret Sync Code / Account Name:
+          </label>
+          <input type="text" id="syncSecretKeyInput" placeholder="e.g. dukaan_hisab_786" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
+          <p class="text-[10px] text-slate-400">
+            Dono devices (Laptop & Mobile) me yahi same code likhein taaki dono aapas me connect ho jayein.
+          </p>
+        </div>
+
+        <!-- Firebase Config JSON -->
+        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700 space-y-1.5">
+          <label class="block text-[11px] font-bold text-amber-300">
+            📋 Firebase Config JSON:
+          </label>
+          <textarea id="firebaseConfigInput" rows="5" placeholder='Paste your firebaseConfig object here:
+{
+  "apiKey": "AIzaSy...",
+  "authDomain": "...",
+  "projectId": "...",
+  "storageBucket": "...",
+  "messagingSenderId": "...",
+  "appId": "..."
+}' class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-[11px] font-mono text-emerald-300 focus:outline-none focus:border-emerald-500"></textarea>
+          <p class="text-[10px] text-slate-400">
+            Yeh config sirf pehli baar daalni hoti hai. Ek baar save hone ke baad browser ise yaad rakhta hai.
+          </p>
+        </div>
+
+        <!-- Connect Buttons -->
+        <div class="flex gap-2 pt-1">
+          <button id="saveCloudSyncBtn" class="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md">
+            <span>⚡</span> Connect & Sync Now
+          </button>
+          <button id="disconnectCloudBtn" class="py-2.5 px-3 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/60 font-semibold text-xs">
+            Disconnect
+          </button>
+        </div>
+
+        <!-- Connection State Display -->
+        <div id="cloudConnectionMsg" class="text-center text-xs py-1.5 text-slate-400">
+          Status: Local storage active
+        </div>
+      </div>
+
+      <button id="dismissSyncModalBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs">
+        Band Karein (Close)
+      </button>
+    </div>
+  </div>
+
   <!-- BACKUP & RESTORE MODAL -->
   <div id="backupModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative space-y-4">
@@ -684,49 +779,22 @@
 
   <script>
     const STORAGE_KEY = 'barakah_money_daily_records_v2';
+    const SYNC_CONFIG_KEY = 'barakah_money_firebase_config';
+    const SYNC_SECRET_KEY = 'barakah_money_sync_secret';
+
     let records = {};
     let currentDisplayDate = new Date();
     let selectedDateStr = formatDate(new Date());
 
+    // Cloud Sync State
+    let cloudDb = null;
+    let cloudAuth = null;
+    let cloudUnsubscribe = null;
+    let isCloudConnected = false;
+    let currentSyncSecret = '';
+
     function formatDate(d) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-
-    function formatRupee(val) {
-      return '₹' + Math.round(val || 0).toLocaleString('en-IN');
-    }
-
-    function checkStorageStatus() {
-      if (window.location.protocol === 'file:' || window.location.href.includes('content:')) {
-        const banner = document.getElementById('storageNoticeBanner');
-        if (banner) banner.classList.remove('hidden');
-      }
-    }
-
-    function loadRecords() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        records = raw ? JSON.parse(raw) : {};
-      } catch (err) {
-        console.error('Failed to load storage', err);
-        records = {};
-      }
-    }
-
-    function saveRecords() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-        return true;
-      } catch (err) {
-        console.error('Failed to save storage', err);
-        alert('Storage error! Kripya "Backup Data" button daba kar file save karein.');
-        return false;
-      }
-    }
-
+/* ... existing code ... -->
     function showToast(msg) {
       const toast = document.getElementById('toast');
       const msgEl = document.getElementById('toastMessage');
@@ -737,432 +805,125 @@
       }, 2800);
     }
 
-    const inputCash = document.getElementById('inputCash');
-    const inputUpi = document.getElementById('inputUpi');
-    const inputRestock = document.getElementById('inputRestock');
-    
-    // Pot Inflow Inputs
-    const inputFamily = document.getElementById('inputFamily');
-    const inputEmergency = document.getElementById('inputEmergency');
-    const inputBuffer = document.getElementById('inputBuffer');
-    const inputSadaqah = document.getElementById('inputSadaqah');
+    // CLOUD SYNC INITIALIZATION & LISTENERS
+    function updateCloudBadge(status) {
+      const badge = document.getElementById('cloudStatusBadge');
+      const msg = document.getElementById('cloudConnectionMsg');
+      if (!badge) return;
 
-    // Pot Spent Inputs
-    const inputSpentFamily = document.getElementById('inputSpentFamily');
-    const inputSpentEmergency = document.getElementById('inputSpentEmergency');
-    const inputSpentBuffer = document.getElementById('inputSpentBuffer');
-    const inputSpentSadaqah = document.getElementById('inputSpentSadaqah');
-
-    const inputNote = document.getElementById('inputNote');
-    const inputDate = document.getElementById('inputDate');
-    const deleteBtn = document.getElementById('deleteEntryBtn');
-
-    function calculateLiveForm() {
-      const cash = Math.max(0, Number(inputCash.value) || 0);
-      const upi = Math.max(0, Number(inputUpi.value) || 0);
-      const grossSales = cash + upi;
-      const restock = Math.max(0, Number(inputRestock.value) || 0);
-      const netProfit = Math.max(0, grossSales - restock);
-
-      document.getElementById('modalGrossTotalBadge').textContent = `Total Bikri: ${formatRupee(grossSales)}`;
-      document.getElementById('calculatedNetProfitBadge').textContent = formatRupee(netProfit);
-
-      const familyVal = Math.max(0, Number(inputFamily.value) || 0);
-      const emergVal = Math.max(0, Number(inputEmergency.value) || 0);
-      const bufferVal = Math.max(0, Number(inputBuffer.value) || 0);
-      const sadaqahVal = Math.max(0, Number(inputSadaqah.value) || 0);
-
-      const spentFam = Math.max(0, Number(inputSpentFamily.value) || 0);
-      const spentEmg = Math.max(0, Number(inputSpentEmergency.value) || 0);
-      const spentBuf = Math.max(0, Number(inputSpentBuffer.value) || 0);
-      const spentSad = Math.max(0, Number(inputSpentSadaqah.value) || 0);
-
-      // Show day net for each pot
-      document.getElementById('familyDayNetIndicator').textContent = `Bacha: ${formatRupee(familyVal - spentFam)}`;
-      document.getElementById('emergencyDayNetIndicator').textContent = `Bacha: ${formatRupee(emergVal - spentEmg)}`;
-      document.getElementById('bufferDayNetIndicator').textContent = `Bacha: ${formatRupee(bufferVal - spentBuf)}`;
-      document.getElementById('sadaqahDayNetIndicator').textContent = `Gullak me: ${formatRupee(sadaqahVal - spentSad)}`;
-
-      const totalAllocated = familyVal + emergVal + bufferVal + sadaqahVal;
-      const unallocated = netProfit - totalAllocated;
-
-      // Update reverse percentages
-      const calcPct = (amt) => netProfit > 0 ? Math.round((amt / netProfit) * 100) + '%' : '0%';
-      document.getElementById('pctFamily').textContent = calcPct(familyVal);
-      document.getElementById('pctEmergency').textContent = calcPct(emergVal);
-      document.getElementById('pctBuffer').textContent = calcPct(bufferVal);
-      document.getElementById('pctSadaqah').textContent = calcPct(sadaqahVal);
-
-      // Balance status box
-      const statusBox = document.getElementById('balanceStatusBar');
-      const statusText = document.getElementById('balanceStatusText');
-      const statusAmt = document.getElementById('balanceStatusAmount');
-
-      if (unallocated === 0) {
-        statusBox.className = 'p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between bg-emerald-950/40 border border-emerald-500/40 text-emerald-300';
-        statusText.textContent = '✓ Hisab Bilkul Barabar (Balanced 100%)';
-        statusAmt.textContent = '₹0 left';
-      } else if (unallocated > 0) {
-        statusBox.className = 'p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between bg-slate-800 text-slate-300 border border-slate-700';
-        statusText.textContent = 'Bacha Hua Net Profit (Unallocated):';
-        statusAmt.textContent = `${formatRupee(unallocated)} baqi`;
+      if (status === 'connected') {
+        badge.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-500/50';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ☁️ Live Cloud Sync';
+        if (msg) msg.innerHTML = '<span class="text-emerald-400 font-semibold">✓ Connected! Live real-time sync chal raha hai.</span>';
+      } else if (status === 'connecting') {
+        badge.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded-md bg-amber-950/80 text-amber-300 border border-amber-500/50';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Connecting...';
+        if (msg) msg.innerHTML = '<span class="text-amber-300">Connecting to cloud...</span>';
       } else {
-        statusBox.className = 'p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between bg-red-950/40 border border-red-500/50 text-red-300';
-        statusText.textContent = '⚠️ Profit se zyada bantwara kar diya!';
-        statusAmt.textContent = `${formatRupee(Math.abs(unallocated))} extra`;
+        badge.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded-md bg-slate-800 text-slate-400 border border-slate-700';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline / Local';
+        if (msg) msg.innerHTML = '<span class="text-slate-400">Status: Offline / Local Mode</span>';
       }
     }
 
-    function autoSuggestRoundedValues() {
-      const cash = Math.max(0, Number(inputCash.value) || 0);
-      const upi = Math.max(0, Number(inputUpi.value) || 0);
-      const grossSales = cash + upi;
-      let restock = Number(inputRestock.value);
-
-      if (!restock && grossSales > 0) {
-        restock = Math.round(grossSales * 0.60);
-        inputRestock.value = restock;
-      }
-
-      const netProfit = Math.max(0, grossSales - (restock || 0));
-      if (netProfit <= 0) return;
-
-      let fam = Math.round((netProfit * 0.65) / 10) * 10;
-      let emg = Math.round((netProfit * 0.15) / 5) * 5;
-      let buf = Math.round((netProfit * 0.15) / 5) * 5;
-      let sad = netProfit - (fam + emg + buf);
-
-      if (sad < 0) {
-        fam += sad;
-        sad = 0;
-      }
-
-      inputFamily.value = fam;
-      inputEmergency.value = emg;
-      inputBuffer.value = buf;
-      inputSadaqah.value = sad;
-
-      calculateLiveForm();
-    }
-
-    function calculateVaultsAndTotals(targetYear, targetMonth) {
-      // 1. Continuous all-time vaults (From Day 1 to Today)
-      let totalFamilyIn = 0, totalFamilySpent = 0;
-      let totalEmergencyIn = 0, totalEmergencySpent = 0;
-      let totalBufferIn = 0, totalBufferSpent = 0;
-      let totalSadaqahIn = 0, totalSadaqahSpent = 0;
-
-      // 2. Month specific stats
-      let monthSales = 0, monthCash = 0, monthUpi = 0, monthRestock = 0, monthNetProfit = 0;
-      let mFamIn = 0, mFamOut = 0;
-      let mEmgIn = 0, mEmgOut = 0;
-      let mBufIn = 0, mBufOut = 0;
-      let mSadIn = 0, mSadOut = 0;
-
-      Object.keys(records).forEach(key => {
-        const item = records[key];
-        const [y, m] = key.split('-').map(Number);
-        const isCurrentMonth = (y === targetYear && (m - 1) === targetMonth);
-
-        const famIn = item.familyNafaqah || 0;
-        const famOut = item.spentFamily || 0;
-        const emgIn = item.emergency || 0;
-        const emgOut = item.spentEmergency || 0;
-        const bufIn = item.shopBuffer || 0;
-        const bufOut = item.spentBuffer || 0;
-        const sadIn = item.sadaqah || 0;
-        const sadOut = item.spentSadaqah || 0;
-
-        totalFamilyIn += famIn;
-        totalFamilySpent += famOut;
-        totalEmergencyIn += emgIn;
-        totalEmergencySpent += emgOut;
-        totalBufferIn += bufIn;
-        totalBufferSpent += bufOut;
-        totalSadaqahIn += sadIn;
-        totalSadaqahSpent += sadOut;
-
-        if (isCurrentMonth) {
-          monthSales += item.sales || 0;
-          monthCash += item.cash || 0;
-          monthUpi += item.upi || 0;
-          monthRestock += item.restock || 0;
-          monthNetProfit += item.netProfit || 0;
-
-          mFamIn += famIn; mFamOut += famOut;
-          mEmgIn += emgIn; mEmgOut += emgOut;
-          mBufIn += bufIn; mBufOut += bufOut;
-          mSadIn += sadIn; mSadOut += sadOut;
-        }
-      });
-
-      // Update Live Vaults (Continuous Balance)
-      const balFam = totalFamilyIn - totalFamilySpent;
-      const balEmg = totalEmergencyIn - totalEmergencySpent;
-      const balBuf = totalBufferIn - totalBufferSpent;
-      const balSad = totalSadaqahIn - totalSadaqahSpent;
-
-      document.getElementById('vaultFamilyBalance').textContent = formatRupee(balFam);
-      document.getElementById('vaultFamilyIn').textContent = formatRupee(totalFamilyIn);
-      document.getElementById('vaultFamilyOut').textContent = formatRupee(totalFamilySpent);
-
-      document.getElementById('vaultEmergencyBalance').textContent = formatRupee(balEmg);
-      document.getElementById('vaultEmergencyIn').textContent = formatRupee(totalEmergencyIn);
-      document.getElementById('vaultEmergencyOut').textContent = formatRupee(totalEmergencySpent);
-
-      document.getElementById('vaultBufferBalance').textContent = formatRupee(balBuf);
-      document.getElementById('vaultBufferIn').textContent = formatRupee(totalBufferIn);
-      document.getElementById('vaultBufferOut').textContent = formatRupee(totalBufferSpent);
-
-      document.getElementById('vaultSadaqahBalance').textContent = formatRupee(balSad);
-      document.getElementById('vaultSadaqahIn').textContent = formatRupee(totalSadaqahIn);
-      document.getElementById('vaultSadaqahOut').textContent = formatRupee(totalSadaqahSpent);
-
-      // Month stats cards
-      document.getElementById('statMonthSales').textContent = formatRupee(monthSales);
-      document.getElementById('statCashTotalLabel').textContent = `💵 ${formatRupee(monthCash)}`;
-      document.getElementById('statUpiTotalLabel').textContent = `📲 ${formatRupee(monthUpi)}`;
-      document.getElementById('statMonthRestock').textContent = formatRupee(monthRestock);
-      document.getElementById('statMonthNetProfit').textContent = formatRupee(monthNetProfit);
-      document.getElementById('statEmergencyTotal').textContent = formatRupee(balEmg);
-
-      const target = 5000;
-      const pct = Math.min(100, Math.round((balEmg / target) * 100));
-      document.getElementById('statEmergencyPct').textContent = `${pct}%`;
-      document.getElementById('statEmergencyBar').style.width = `${pct}%`;
-
-      // Return month data for the audit modal
-      return {
-        mFamIn, mFamOut,
-        mEmgIn, mEmgOut,
-        mBufIn, mBufOut,
-        mSadIn, mSadOut
-      };
-    }
-
-    function renderCalendar() {
-      const grid = document.getElementById('calendarDaysGrid');
-      grid.innerHTML = '';
-
-      const year = currentDisplayDate.getFullYear();
-      const month = currentDisplayDate.getMonth();
-
-      const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      document.getElementById('calendarMonthLabel').textContent = `${monthNames[month]} ${year}`;
-
-      const firstDayOfMonth = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const todayStr = formatDate(new Date());
-
-      for (let i = 0; i < firstDayOfMonth; i++) {
-        const blank = document.createElement('div');
-        blank.className = 'h-14 sm:h-20 rounded-xl bg-slate-900/20 border border-slate-900/30';
-        grid.appendChild(blank);
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateObj = new Date(year, month, day);
-        const dateKey = formatDate(dateObj);
-        const record = records[dateKey];
-
-        const dayCell = document.createElement('button');
-        dayCell.type = 'button';
-        dayCell.className = `touch-target h-14 sm:h-20 rounded-xl p-1.5 flex flex-col justify-between text-left transition border ${
-          dateKey === todayStr
-            ? 'border-amber-400 bg-slate-800/90 shadow-md ring-1 ring-amber-400/40'
-            : record
-            ? 'border-emerald-500/40 bg-slate-900 hover:bg-slate-800/80'
-            : 'border-slate-800 bg-slate-900/40 hover:bg-slate-800/50'
-        }`;
-
-        const topRow = document.createElement('div');
-        topRow.className = 'flex items-center justify-between w-full';
-
-        const dayNum = document.createElement('span');
-        dayNum.className = `text-[11px] font-bold ${
-          dateKey === todayStr ? 'text-amber-300' : 'text-slate-300'
-        }`;
-        dayNum.textContent = day;
-        topRow.appendChild(dayNum);
-
-        if (record) {
-          const dot = document.createElement('span');
-          dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
-          topRow.appendChild(dot);
-        }
-        dayCell.appendChild(topRow);
-
-        const bottomRow = document.createElement('div');
-        bottomRow.className = 'w-full text-right overflow-hidden';
-        if (record) {
-          const daySpent = (record.spentFamily || 0) + (record.spentEmergency || 0) + (record.spentBuffer || 0) + (record.spentSadaqah || 0);
-          bottomRow.innerHTML = `
-            <p class="text-[10px] sm:text-xs font-black text-white truncate">₹${record.sales}</p>
-            <p class="hidden sm:block text-[9px] text-red-400 truncate">Exp: ₹${daySpent}</p>
-          `;
-        } else {
-          bottomRow.innerHTML = `<span class="text-[9px] text-slate-600 sm:block hidden">+ hisab</span>`;
-        }
-        dayCell.appendChild(bottomRow);
-
-        dayCell.addEventListener('click', () => openEntryModal(dateKey));
-        grid.appendChild(dayCell);
-      }
-
-      calculateVaultsAndTotals(year, month);
-      renderRecentTable();
-    }
-
-    function renderRecentTable() {
-      const tbody = document.getElementById('recentEntriesTableBody');
-      const noEntries = document.getElementById('noEntriesMessage');
-      tbody.innerHTML = '';
-
-      const keys = Object.keys(records).sort().reverse().slice(0, 15);
-
-      if (keys.length === 0) {
-        noEntries.classList.remove('hidden');
+    async function initCloudSync(cfgString, secretKey) {
+      if (!window.FirebaseLib) {
+        console.warn('Firebase library not ready yet');
         return;
       }
-      noEntries.classList.add('hidden');
 
-      keys.forEach(k => {
-        const row = records[k];
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-800/40 transition cursor-pointer';
+      try {
+        let cleanCfg = cfgString.trim();
+        // Allow user to paste standard JS object or JSON
+        if (cleanCfg.startsWith('const firebaseConfig =')) {
+          cleanCfg = cleanCfg.replace('const firebaseConfig =', '').trim().replace(/;$/, '');
+        }
+        
+        let configObj;
+        try {
+          configObj = JSON.parse(cleanCfg);
+        } catch {
+          // Fallback parsing if keys are unquoted
+          configObj = (new Function(`return ${cleanCfg}`))();
+        }
 
-        const famIn = row.familyNafaqah || 0;
-        const famOut = row.spentFamily || 0;
-        const emgIn = row.emergency || 0;
-        const emgOut = row.spentEmergency || 0;
-        const bufIn = row.shopBuffer || 0;
-        const bufOut = row.spentBuffer || 0;
-        const sadIn = row.sadaqah || 0;
-        const sadOut = row.spentSadaqah || 0;
+        if (!configObj || !configObj.projectId) {
+          alert('Firebase config sahi nahi hai. Kripya pura snippet paste karein.');
+          return;
+        }
 
-        tr.innerHTML = `
-          <td class="py-2.5 px-2 font-medium text-white">${k}</td>
-          <td class="py-2.5 px-2 font-bold text-white">₹${row.sales}</td>
-          <td class="py-2.5 px-2 text-red-400">₹${row.restock}</td>
-          <td class="py-2.5 px-2 text-emerald-300 font-bold">₹${row.netProfit}</td>
-          <td class="py-2.5 px-2 text-emerald-400 font-medium">₹${famIn} <span class="text-[10px] text-red-400">(-₹${famOut})</span></td>
-          <td class="py-2.5 px-2 text-teal-300 font-medium">₹${emgIn} <span class="text-[10px] text-red-400">(-₹${emgOut})</span></td>
-          <td class="py-2.5 px-2 text-blue-300 font-medium">₹${bufIn} <span class="text-[10px] text-red-400">(-₹${bufOut})</span></td>
-          <td class="py-2.5 px-2 text-amber-300 font-bold">₹${sadIn} <span class="text-[10px] text-red-400">(-₹${sadOut})</span></td>
-          <td class="py-2.5 px-2 text-right">
-            <button class="edit-row-btn text-[11px] text-slate-400 hover:text-emerald-400 p-1" data-date="${k}">Edit</button>
-          </td>
-        `;
+        updateCloudBadge('connecting');
+        const { initializeApp, getAuth, signInAnonymously, getFirestore, doc, onSnapshot } = window.FirebaseLib;
 
-        tr.querySelector('.edit-row-btn').addEventListener('click', (e) => {
-          e.stopPropagation();
-          openEntryModal(k);
+        // Initialize Firebase app safely
+        const app = initializeApp(configObj, 'BarakahApp_' + Date.now());
+        cloudAuth = getAuth(app);
+        cloudDb = getFirestore(app);
+
+        await signInAnonymously(cloudAuth);
+
+        currentSyncSecret = (secretKey || 'default_vault').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        const docRef = doc(cloudDb, 'barakah_sync_vaults', currentSyncSecret);
+
+        // Real-time listener for incoming changes from Laptop or Mobile
+        if (cloudUnsubscribe) cloudUnsubscribe();
+        cloudUnsubscribe = onSnapshot(docRef, (snap) => {
+          if (snap.exists()) {
+            const remoteData = snap.data();
+            if (remoteData && remoteData.records) {
+              records = remoteData.records;
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+              renderCalendar();
+            }
+          } else {
+            // First time setup: push existing local records to cloud
+            pushRecordsToCloud();
+          }
+          isCloudConnected = true;
+          updateCloudBadge('connected');
+        }, (err) => {
+          console.error('Firestore sync error:', err);
+          updateCloudBadge('offline');
+          isCloudConnected = false;
         });
 
-        tr.addEventListener('click', () => openEntryModal(k));
-        tbody.appendChild(tr);
-      });
-    }
-
-    const entryModal = document.getElementById('entryModal');
-
-    function openEntryModal(dateStr) {
-      selectedDateStr = dateStr;
-      inputDate.value = dateStr;
-      document.getElementById('modalDateLabel').textContent = `Hisab Entry: ${dateStr}`;
-
-      const existing = records[dateStr];
-      if (existing) {
-        inputCash.value = existing.cash !== undefined ? existing.cash : existing.sales;
-        inputUpi.value = existing.upi || '';
-        inputRestock.value = existing.restock || '';
-        inputFamily.value = existing.familyNafaqah || '';
-        inputEmergency.value = existing.emergency || '';
-        inputBuffer.value = existing.shopBuffer || '';
-        inputSadaqah.value = existing.sadaqah || '';
-        
-        // Load Spent amounts
-        inputSpentFamily.value = existing.spentFamily || '';
-        inputSpentEmergency.value = existing.spentEmergency || '';
-        inputSpentBuffer.value = existing.spentBuffer || '';
-        inputSpentSadaqah.value = existing.spentSadaqah || '';
-
-        inputNote.value = existing.note || '';
-        deleteBtn.classList.remove('hidden');
-      } else {
-        inputCash.value = '';
-        inputUpi.value = '';
-        inputRestock.value = '';
-        inputFamily.value = '';
-        inputEmergency.value = '';
-        inputBuffer.value = '';
-        inputSadaqah.value = '';
-
-        inputSpentFamily.value = '';
-        inputSpentEmergency.value = '';
-        inputSpentBuffer.value = '';
-        inputSpentSadaqah.value = '';
-
-        inputNote.value = '';
-        deleteBtn.classList.add('hidden');
+        // Store configuration in device storage
+        localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(configObj));
+        localStorage.setItem(SYNC_SECRET_KEY, currentSyncSecret);
+        showToast('☁️ Cloud connect ho gaya! Ab laptop & mobile auto-sync hain.');
+      } catch (err) {
+        console.error('Cloud Init Error:', err);
+        updateCloudBadge('offline');
+        alert('Cloud se connect hone me masla hua: ' + err.message);
       }
-
-      calculateLiveForm();
-      entryModal.classList.remove('hidden');
     }
 
-    function closeEntryModal() {
-      entryModal.classList.add('hidden');
+    async function pushRecordsToCloud() {
+      if (!isCloudConnected || !cloudDb || !currentSyncSecret) return;
+      try {
+        const { doc, setDoc } = window.FirebaseLib;
+        const docRef = doc(cloudDb, 'barakah_sync_vaults', currentSyncSecret);
+        await setDoc(docRef, {
+          records: records,
+          lastUpdated: new Date().toISOString()
+        }, { merge: true });
+      } catch (e) {
+        console.warn('Could not push to cloud, will keep locally:', e);
+      }
     }
 
-    inputCash.addEventListener('input', calculateLiveForm);
-    inputUpi.addEventListener('input', calculateLiveForm);
-    inputRestock.addEventListener('input', calculateLiveForm);
-    
-    inputFamily.addEventListener('input', calculateLiveForm);
-    inputEmergency.addEventListener('input', calculateLiveForm);
-    inputBuffer.addEventListener('input', calculateLiveForm);
-    inputSadaqah.addEventListener('input', calculateLiveForm);
+    function checkSavedCloudConfig() {
+      const savedCfg = localStorage.getItem(SYNC_CONFIG_KEY);
+      const savedSecret = localStorage.getItem(SYNC_SECRET_KEY);
+      if (savedCfg && savedSecret) {
+        document.getElementById('firebaseConfigInput').value = savedCfg;
+        document.getElementById('syncSecretKeyInput').value = savedSecret;
+        initCloudSync(savedCfg, savedSecret);
+      }
+    }
 
-    inputSpentFamily.addEventListener('input', calculateLiveForm);
-    inputSpentEmergency.addEventListener('input', calculateLiveForm);
-    inputSpentBuffer.addEventListener('input', calculateLiveForm);
-    inputSpentSadaqah.addEventListener('input', calculateLiveForm);
-
-    document.querySelectorAll('.quick-gross-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        inputCash.value = btn.getAttribute('data-cash');
-        inputUpi.value = btn.getAttribute('data-upi');
-        calculateLiveForm();
-      });
-    });
-
-    document.getElementById('suggestSplitBtn').addEventListener('click', autoSuggestRoundedValues);
-    document.getElementById('closeModalBtn').addEventListener('click', closeEntryModal);
-
-    // Save Daily Record
-    document.getElementById('dailyEntryForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const dateKey = inputDate.value;
-      const cash = Math.max(0, Number(inputCash.value) || 0);
-      const upi = Math.max(0, Number(inputUpi.value) || 0);
-      const grossSales = cash + upi;
-      const restock = Math.max(0, Number(inputRestock.value) || 0);
-      const netProfit = Math.max(0, grossSales - restock);
-
-      const fam = Math.max(0, Number(inputFamily.value) || 0);
-      const emg = Math.max(0, Number(inputEmergency.value) || 0);
-      const buf = Math.max(0, Number(inputBuffer.value) || 0);
-      const sad = Math.max(0, Number(inputSadaqah.value) || 0);
-
-      const spFam = Math.max(0, Number(inputSpentFamily.value) || 0);
-      const spEmg = Math.max(0, Number(inputSpentEmergency.value) || 0);
-      const spBuf = Math.max(0, Number(inputSpentBuffer.value) || 0);
-      const spSad = Math.max(0, Number(inputSpentSadaqah.value) || 0);
-
+    const inputCash = document.getElementById('inputCash');
+/* ... existing code ... -->
       records[dateKey] = {
         sales: grossSales,
         cash: cash,
@@ -1183,6 +944,7 @@
 
       const success = saveRecords();
       if (success) {
+        pushRecordsToCloud();
         closeEntryModal();
         renderCalendar();
         showToast(`Hisab & Kharch dono save ho gaye! 🤲`);
@@ -1195,6 +957,7 @@
       if (records[dateKey]) {
         delete records[dateKey];
         saveRecords();
+        pushRecordsToCloud();
         closeEntryModal();
         renderCalendar();
         showToast('Record delete ho gaya.');
@@ -1202,146 +965,47 @@
     });
 
     document.getElementById('todayQuickBtn').addEventListener('click', () => {
-      openEntryModal(formatDate(new Date()));
-    });
-
-    document.getElementById('prevMonthBtn').addEventListener('click', () => {
-      currentDisplayDate.setMonth(currentDisplayDate.getMonth() - 1);
-      renderCalendar();
-    });
-
-    document.getElementById('nextMonthBtn').addEventListener('click', () => {
-      currentDisplayDate.setMonth(currentDisplayDate.getMonth() + 1);
-      renderCalendar();
-    });
-
-    document.getElementById('currentMonthBtn').addEventListener('click', () => {
-      currentDisplayDate = new Date();
-      renderCalendar();
-    });
-
-    // Month-End Audit Modal triggers
-    const auditModal = document.getElementById('auditModal');
-    document.getElementById('openAuditBtn').addEventListener('click', () => {
-      const year = currentDisplayDate.getFullYear();
-      const month = currentDisplayDate.getMonth();
-      const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      document.getElementById('auditMonthTitle').innerHTML = `<span>📊</span> ${monthNames[month]} ${year} Audit`;
-
-      const m = calculateVaultsAndTotals(year, month);
-
-      document.getElementById('auditFamilyIn').textContent = formatRupee(m.mFamIn);
-      document.getElementById('auditFamilyOut').textContent = formatRupee(m.mFamOut);
-      const famNet = m.mFamIn - m.mFamOut;
-      document.getElementById('auditFamilyNet').textContent = `Net: ${famNet >= 0 ? '+' : ''}${formatRupee(famNet)}`;
-
-      document.getElementById('auditEmergencyIn').textContent = formatRupee(m.mEmgIn);
-      document.getElementById('auditEmergencyOut').textContent = formatRupee(m.mEmgOut);
-      const emgNet = m.mEmgIn - m.mEmgOut;
-      document.getElementById('auditEmergencyNet').textContent = `Net: ${emgNet >= 0 ? '+' : ''}${formatRupee(emgNet)}`;
-
-      document.getElementById('auditBufferIn').textContent = formatRupee(m.mBufIn);
-      document.getElementById('auditBufferOut').textContent = formatRupee(m.mBufOut);
-      const bufNet = m.mBufIn - m.mBufOut;
-      document.getElementById('auditBufferNet').textContent = `Net: ${bufNet >= 0 ? '+' : ''}${formatRupee(bufNet)}`;
-
-      document.getElementById('auditSadaqahIn').textContent = formatRupee(m.mSadIn);
-      document.getElementById('auditSadaqahOut').textContent = formatRupee(m.mSadOut);
-      const sadNet = m.mSadIn - m.mSadOut;
-      document.getElementById('auditSadaqahNet').textContent = `Bacha: ${formatRupee(sadNet)}`;
-
-      const grandNet = famNet + emgNet + bufNet + sadNet;
-      document.getElementById('auditGrandNet').textContent = `${grandNet >= 0 ? '+' : ''}${formatRupee(grandNet)}`;
-
-      auditModal.classList.remove('hidden');
-    });
-
-    document.getElementById('closeAuditModalBtn').addEventListener('click', () => auditModal.classList.add('hidden'));
+/* ... existing code ... -->
     document.getElementById('dismissAuditModalBtn').addEventListener('click', () => auditModal.classList.add('hidden'));
+
+    // Cloud Sync Modal triggers
+    const syncModal = document.getElementById('syncModal');
+    document.getElementById('openSyncModalBtn').addEventListener('click', () => {
+      syncModal.classList.remove('hidden');
+    });
+    document.getElementById('closeSyncModalBtn').addEventListener('click', () => {
+      syncModal.classList.add('hidden');
+    });
+    document.getElementById('dismissSyncModalBtn').addEventListener('click', () => {
+      syncModal.classList.add('hidden');
+    });
+
+    document.getElementById('saveCloudSyncBtn').addEventListener('click', () => {
+      const cfg = document.getElementById('firebaseConfigInput').value;
+      const secret = document.getElementById('syncSecretKeyInput').value;
+      if (!cfg.trim() || !secret.trim()) {
+        alert('Kripya apna Sync Code aur Firebase Config dono bharein.');
+        return;
+      }
+      initCloudSync(cfg, secret);
+    });
+
+    document.getElementById('disconnectCloudBtn').addEventListener('click', () => {
+      if (cloudUnsubscribe) cloudUnsubscribe();
+      isCloudConnected = false;
+      cloudDb = null;
+      cloudAuth = null;
+      localStorage.removeItem(SYNC_CONFIG_KEY);
+      localStorage.removeItem(SYNC_SECRET_KEY);
+      updateCloudBadge('offline');
+      document.getElementById('firebaseConfigInput').value = '';
+      document.getElementById('syncSecretKeyInput').value = '';
+      showToast('Cloud disconnect ho gaya. Ab data sirf local save hoga.');
+    });
 
     // Data Management Modal (Backup & Restore)
     const backupModal = document.getElementById('backupModal');
-    document.getElementById('manageDataBtn').addEventListener('click', () => {
-      backupModal.classList.remove('hidden');
-    });
-    document.getElementById('closeBackupModalBtn').addEventListener('click', () => {
-      backupModal.classList.add('hidden');
-    });
-    document.getElementById('dismissBackupModalBtn').addEventListener('click', () => {
-      backupModal.classList.add('hidden');
-    });
-
-    // Download JSON Backup
-    document.getElementById('downloadJsonBackupBtn').addEventListener('click', () => {
-      const jsonStr = JSON.stringify(records, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Barakah_Hisab_Backup_${formatDate(new Date())}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Backup file download ho gayi!');
-    });
-
-    // Restore JSON File
-    document.getElementById('restoreFileInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const parsed = JSON.parse(event.target.result);
-          if (typeof parsed === 'object') {
-            records = Object.assign({}, records, parsed);
-            saveRecords();
-            renderCalendar();
-            backupModal.classList.add('hidden');
-            showToast('Sadaqah & Hisab data wapas restore ho gaya! ✓');
-          } else {
-            alert('File ka format sahi nahi hai.');
-          }
-        } catch (err) {
-          alert('Backup file padhne me khata hui.');
-        }
-      };
-      reader.readAsText(file);
-    });
-
-    // Install guide modal triggers
-    const installModal = document.getElementById('installModal');
-    document.getElementById('installAppHelpBtn').addEventListener('click', () => {
-      installModal.classList.remove('hidden');
-    });
-    document.getElementById('closeInstallModalBtn').addEventListener('click', () => {
-      installModal.classList.add('hidden');
-    });
-    document.getElementById('dismissInstallModalBtn').addEventListener('click', () => {
-      installModal.classList.add('hidden');
-    });
-
-    document.getElementById('dismissNoticeBtn').addEventListener('click', () => {
-      document.getElementById('storageNoticeBanner').classList.add('hidden');
-    });
-
-    // CSV Export
-    document.getElementById('exportCsvBtn').addEventListener('click', () => {
-      const keys = Object.keys(records).sort();
-      if (keys.length === 0) {
-        showToast('Abhi koi records nahi hain.');
-        return;
-      }
-
-      let csv = 'Date,Total_Sales,Cash_Drawer,Online_UPI,Restock_Cost,Net_Profit,Family_Added,Family_Spent,Emergency_Added,Emergency_Spent,Buffer_Added,Buffer_Spent,Sadaqah_Added,Sadaqah_Spent,Notes\n';
-      keys.forEach(k => {
-        const r = records[k];
-        csv += `${k},${r.sales},${r.cash || 0},${r.upi || 0},${r.restock},${r.netProfit},${r.familyNafaqah || 0},${r.spentFamily || 0},${r.emergency || 0},${r.spentEmergency || 0},${r.shopBuffer || 0},${r.spentBuffer || 0},${r.sadaqah || 0},${r.spentSadaqah || 0},"${(r.note || '').replace(/"/g, '""')}"\n`;
-      });
-
+/* ... existing code ... -->
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -1356,6 +1020,7 @@
       checkStorageStatus();
       loadRecords();
       renderCalendar();
+      setTimeout(checkSavedCloudConfig, 600);
     };
   </script>
 </body>
