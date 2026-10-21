@@ -3,1024 +3,577 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#090d16">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Barakah Money">
-  <title>Barakah Daily Money Management & Split Tracker</title>
+  <title>Barakah Money Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .cinzel {
-      font-family: 'Cinzel', serif;
-    }
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #090d16;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1e293b;
-      border-radius: 9999px;
-    }
-    .touch-target {
-      min-height: 44px;
-      min-width: 44px;
-    }
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
+    body { background-color: #0d131f; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .btn-gold { background: linear-gradient(135deg, #d97706, #b45309); }
+    .btn-emerald { background: linear-gradient(135deg, #059669, #047857); }
   </style>
-  <!-- Firebase SDKs for Multi-Device Auto-Sync -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    window.FirebaseLib = {
-      initializeApp,
-      getAuth,
-      signInAnonymously,
-      getFirestore,
-      doc,
-      setDoc,
-      onSnapshot
-    };
-  </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen pb-28 select-none sm:select-auto">
+<body class="p-3 sm:p-6 pb-20">
 
-  <!-- Storage Warning Banner if running in temporary preview -->
-  <div id="storageNoticeBanner" class="hidden bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 text-center text-xs text-amber-300 flex items-center justify-between">
-    <span>⚠️ <strong>Tip:</strong> Roz ka hisab permanent rakhne ke liye upar <strong>"📲 App Setup"</strong> dekhein ya <strong>"Backup"</strong> save karein.</span>
-    <button id="dismissNoticeBtn" class="text-amber-400 font-bold ml-2 text-sm">✕</button>
-  </div>
-
-  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 sm:px-6 shadow-md">
-    <div class="max-w-4xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-amber-500 flex items-center justify-center text-xl shadow-lg shadow-emerald-950/40">
-          🪙
-        </div>
-        <div>
-          <h1 class="text-base sm:text-lg font-bold cinzel tracking-wide text-amber-300 leading-tight">
-            BARAKAH MONEY
-          </h1>
-          <p class="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
-            <span>Cash + UPI & Manual Pots</span>
-            <span id="cloudStatusBadge" class="inline-flex items-center gap-1 px-1.5 py-0.2 text-[9px] rounded-md bg-slate-800 text-slate-400 border border-slate-700">
-              <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline / Local
-            </span>
-          </p>
-        </div>
+  <!-- Header -->
+  <header class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-amber-400">BARAKAH MONEY</h1>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-xs text-slate-400">Cash + UPI & Manual Pots</span>
+        <span id="sync-status-badge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Connecting Cloud...</span>
       </div>
-
-      <div class="flex items-center gap-2">
-        <button id="openSyncModalBtn" class="touch-target p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs flex items-center gap-1 border border-amber-500/30 shadow-sm" title="Laptop aur Mobile Sync Karein">
-          <span>☁️</span>
-          <span class="hidden sm:inline font-semibold">Auto-Sync</span>
-        </button>
-        <button id="manageDataBtn" class="touch-target p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1 border border-slate-700/60" title="Data Backup & Restore">
-          <span>💾</span>
-          <span class="hidden sm:inline">Backup/Restore</span>
-        </button>
-        <button id="openAuditBtn" class="touch-target p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1 border border-slate-700/60" title="Month-End Kharch & Bacha Hisab">
-          <span>📊</span>
-          <span class="hidden sm:inline">Month Audit</span>
-        </button>
-        <button id="installAppHelpBtn" class="touch-target p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1 border border-slate-700/60" title="How to save permanently">
-          <span>📲</span>
-          <span class="hidden sm:inline">App Setup</span>
-        </button>
-        <button id="todayQuickBtn" class="touch-target bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md shadow-emerald-900/40">
-          <span>➕</span>
-          <span>Aj Ka Hisab</span>
-        </button>
-      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button onclick="openSyncModal()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+        <span>☁️</span> Auto-Sync
+      </button>
+      <button onclick="openMonthAudit()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3 py-1.5 rounded-lg">
+        📊 Month Audit
+      </button>
+      <button onclick="openEntryModal()" class="text-xs font-semibold btn-emerald text-white px-4 py-1.5 rounded-lg shadow-lg">
+        + Aj Ka Hisab
+      </button>
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto px-4 sm:px-6 pt-5 space-y-5">
-
-    <!-- CONTINUOUS LIVE VAULTS (CURRENT TOTAL CASH IN-HAND IN EACH POT) -->
-    <section class="bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
-        <div>
-          <span class="text-[10px] uppercase font-extrabold text-amber-400 tracking-wider">Tijarat & Barakah Vaults</span>
-          <h2 class="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
-            <span>💰</span> Abhi Haath Me Kitna Cash Bacha Hai (Current Running Balance)
-          </h2>
-        </div>
-        <span class="text-[10px] text-slate-400 bg-slate-800 px-2 py-1 rounded-lg">Pehle din se aaj tak live</span>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <!-- Family Vault -->
-        <div class="bg-slate-950/60 border border-emerald-900/40 rounded-2xl p-3 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-[11px] text-emerald-400 font-semibold">
-            <span>🏠 Ghar (Nafaqah)</span>
-          </div>
-          <div class="mt-2">
-            <span id="vaultFamilyBalance" class="text-base sm:text-lg font-black text-emerald-300">₹0</span>
-            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
-              <span>Aya: <b id="vaultFamilyIn" class="text-slate-300">₹0</b></span>
-              <span>Kharch: <b id="vaultFamilyOut" class="text-red-400">₹0</b></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Emergency & Medicine Vault -->
-        <div class="bg-slate-950/60 border border-teal-900/40 rounded-2xl p-3 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-[11px] text-teal-400 font-semibold">
-            <span>🛡️ Dawa / Emergency</span>
-          </div>
-          <div class="mt-2">
-            <span id="vaultEmergencyBalance" class="text-base sm:text-lg font-black text-teal-300">₹0</span>
-            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
-              <span>Aya: <b id="vaultEmergencyIn" class="text-slate-300">₹0</b></span>
-              <span>Kharch: <b id="vaultEmergencyOut" class="text-red-400">₹0</b></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Shop Buffer / Debt Vault -->
-        <div class="bg-slate-950/60 border border-blue-900/40 rounded-2xl p-3 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-[11px] text-blue-400 font-semibold">
-            <span>💼 Dukan Buffer/Karz</span>
-          </div>
-          <div class="mt-2">
-            <span id="vaultBufferBalance" class="text-base sm:text-lg font-black text-blue-300">₹0</span>
-            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
-              <span>Aya: <b id="vaultBufferIn" class="text-slate-300">₹0</b></span>
-              <span>Kharch: <b id="vaultBufferOut" class="text-red-400">₹0</b></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sadaqah Gullak Vault -->
-        <div class="bg-slate-950/60 border border-amber-900/40 rounded-2xl p-3 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-[11px] text-amber-400 font-semibold">
-            <span>🤲 Sadaqah Gullak</span>
-          </div>
-          <div class="mt-2">
-            <span id="vaultSadaqahBalance" class="text-base sm:text-lg font-black text-amber-300">₹0</span>
-            <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
-              <span>Aya: <b id="vaultSadaqahIn" class="text-slate-300">₹0</b></span>
-              <span>Diya: <b id="vaultSadaqahOut" class="text-red-400">₹0</b></span>
-            </div>
-          </div>
+  <!-- Live Vaults Balance Header -->
+  <section class="mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="text-xs uppercase tracking-wider text-amber-500 font-bold">Tijarat & Barakah Vaults (Running Balance)</h2>
+      <span class="text-[11px] text-slate-400">Pehle din se aaj tak continuous live</span>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="glass-card p-3 rounded-xl border-l-4 border-l-emerald-500">
+        <div class="text-[11px] text-slate-400 font-medium">🏠 Ghar (Nafaqah)</div>
+        <div id="vault-family" class="text-lg font-bold text-emerald-400 mt-1">₹0</div>
+        <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
+          <span>Aya: <b id="vault-family-in" class="text-slate-300">₹0</b></span>
+          <span>Kharch: <b id="vault-family-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
-    </section>
-
-    <!-- TOP MONTH STATS -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <!-- Total Sales -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-        <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Mahana Bikri (Total)</span>
-        <div class="mt-2">
-          <span id="statMonthSales" class="text-lg sm:text-xl font-bold text-white">₹0</span>
-          <div class="flex gap-2 text-[10px] text-slate-400 mt-0.5">
-            <span id="statCashTotalLabel">💵 ₹0</span>
-            <span id="statUpiTotalLabel">📲 ₹0</span>
-          </div>
+      <div class="glass-card p-3 rounded-xl border-l-4 border-l-sky-500">
+        <div class="text-[11px] text-slate-400 font-medium">🛡️ Dawa / Emergency</div>
+        <div id="vault-emergency" class="text-lg font-bold text-sky-400 mt-1">₹0</div>
+        <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
+          <span>Aya: <b id="vault-emergency-in" class="text-slate-300">₹0</b></span>
+          <span>Kharch: <b id="vault-emergency-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
-
-      <!-- Restock Capital -->
-      <div class="bg-slate-900/80 border border-red-900/40 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-        <span class="text-[11px] font-semibold text-red-400 uppercase tracking-wider">Dukan Maal (Restock)</span>
-        <div class="mt-2 flex items-baseline justify-between">
-          <span id="statMonthRestock" class="text-lg sm:text-xl font-bold text-red-300">₹0</span>
-          <span class="text-[10px] text-red-400/80">Ra's al-Mal</span>
+      <div class="glass-card p-3 rounded-xl border-l-4 border-l-amber-500">
+        <div class="text-[11px] text-slate-400 font-medium">💼 Dukan Buffer / Karz</div>
+        <div id="vault-buffer" class="text-lg font-bold text-amber-400 mt-1">₹0</div>
+        <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
+          <span>Aya: <b id="vault-buffer-in" class="text-slate-300">₹0</b></span>
+          <span>Kharch: <b id="vault-buffer-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
-
-      <!-- Emergency Shield Target -->
-      <div class="bg-slate-900/80 border border-teal-900/40 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-        <div class="flex justify-between items-center">
-          <span class="text-[11px] font-semibold text-teal-400 uppercase tracking-wider">Dawa Shield</span>
-          <span class="text-[10px] text-teal-400 font-bold">Goal ₹5,000</span>
-        </div>
-        <div class="mt-2">
-          <div class="flex items-baseline justify-between">
-            <span id="statEmergencyTotal" class="text-lg sm:text-xl font-bold text-teal-300">₹0</span>
-            <span id="statEmergencyPct" class="text-[11px] text-slate-400">0%</span>
-          </div>
-          <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1.5">
-            <div id="statEmergencyBar" class="bg-teal-500 h-full w-0 transition-all duration-500"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Month Net Profit -->
-      <div class="bg-slate-900/80 border border-emerald-900/40 rounded-2xl p-3.5 flex flex-col justify-between shadow-sm">
-        <span class="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">Mahana Net Munafa</span>
-        <div class="mt-2 flex items-baseline justify-between">
-          <span id="statMonthNetProfit" class="text-lg sm:text-xl font-bold text-emerald-300">₹0</span>
-          <span class="text-[10px] text-emerald-400/80">Real Profit</span>
+      <div class="glass-card p-3 rounded-xl border-l-4 border-l-purple-500">
+        <div class="text-[11px] text-slate-400 font-medium">🤲 Sadaqah Gullak</div>
+        <div id="vault-sadaqah" class="text-lg font-bold text-purple-400 mt-1">₹0</div>
+        <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
+          <span>Aya: <b id="vault-sadaqah-in" class="text-slate-300">₹0</b></span>
+          <span>Diya: <b id="vault-sadaqah-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- CALENDAR SECTION -->
-    <section class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h2 id="calendarTitle" class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-            <span>📅</span> <span id="calendarMonthLabel">Month Year</span>
-          </h2>
-          <p class="text-xs text-slate-400">Tareekh par tap karke cash/UPI hisab bharein ya edit karein</p>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <button id="prevMonthBtn" class="touch-target p-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-          </button>
-          <button id="currentMonthBtn" class="text-xs px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 transition font-medium">
-            Aj (Today)
-          </button>
-          <button id="nextMonthBtn" class="touch-target p-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-          </button>
-        </div>
+  <!-- Month Aggregates -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="glass-card p-3 rounded-xl">
+      <div class="text-[11px] text-slate-400">Mahana Bikri (Total)</div>
+      <div id="sum-sales" class="text-lg font-bold text-slate-100 mt-1">₹0</div>
+      <div class="text-[10px] text-slate-400 mt-1">
+        Cash: <span id="sum-cash" class="text-emerald-400">₹0</span> | UPI: <span id="sum-upi" class="text-sky-400">₹0</span>
       </div>
-
-      <!-- Days of week -->
-      <div class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider py-1.5 border-b border-slate-800/80 mb-2">
-        <span class="text-red-400">Sun</span>
-        <span>Mon</span>
-        <span>Tue</span>
-        <span>Wed</span>
-        <span>Thu</span>
-        <span>Fri</span>
-        <span class="text-emerald-400">Sat</span>
-      </div>
-
-      <!-- Days Grid -->
-      <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 sm:gap-1.5"></div>
-
-      <!-- Legend -->
-      <div class="mt-4 pt-3 border-t border-slate-800/60 flex flex-wrap items-center justify-between text-[11px] text-slate-400 gap-2">
-        <div class="flex items-center gap-3">
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Saved Entry</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full border border-amber-400 bg-amber-400/20"></span> Aaj Ki Tareekh</span>
-        </div>
-        <div class="text-[10px] text-slate-400">Tap date to edit anytime</div>
-      </div>
-    </section>
-
-    <!-- RECENT RECORDS TABLE -->
-    <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-          <span>📋</span> Rozana Ke Records
-        </h3>
-        <button id="exportCsvBtn" class="text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 touch-target">
-          <span>📥</span> Export Excel/CSV
-        </button>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs whitespace-nowrap">
-          <thead>
-            <tr class="border-b border-slate-800 text-slate-400 font-semibold">
-              <th class="py-2.5 px-2">Date</th>
-              <th class="py-2.5 px-2">Bikri Total</th>
-              <th class="py-2.5 px-2 text-red-400 font-medium">Restock Maal</th>
-              <th class="py-2.5 px-2 text-emerald-300 font-bold">Net Profit</th>
-              <th class="py-2.5 px-2 text-emerald-400">Ghar (Daala / Kharch)</th>
-              <th class="py-2.5 px-2 text-teal-300">Dawa/Emg (Daala / Kharch)</th>
-              <th class="py-2.5 px-2 text-blue-300">Buffer (Daala / Kharch)</th>
-              <th class="py-2.5 px-2 text-amber-300">Sadaqah (Daala / Diya)</th>
-              <th class="py-2.5 px-2 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody id="recentEntriesTableBody" class="divide-y divide-slate-800/60 text-slate-300"></tbody>
-        </table>
-      </div>
-      <div id="noEntriesMessage" class="hidden text-center py-6 text-xs text-slate-500">
-        Koi record nahi mila. Upar "Aj Ka Hisab" dabakar pehli entry karein!
-      </div>
-    </section>
-
-  </main>
-
-  <!-- DAILY ENTRY MODAL -->
-  <div id="entryModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 hidden transition-opacity">
-    <div class="bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[92vh] overflow-y-auto p-4 sm:p-6 shadow-2xl relative">
-      
-      <div class="flex items-start justify-between pb-3 border-b border-slate-800">
-        <div>
-          <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Rozana Cash, Pots & Kharch Entry</span>
-          <h3 id="modalDateLabel" class="text-base sm:text-lg font-bold text-white flex items-center gap-1.5 mt-0.5">
-            Hisab Entry
-          </h3>
-        </div>
-        <button id="closeModalBtn" class="touch-target p-2 text-slate-400 hover:text-white rounded-full bg-slate-800/60 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <form id="dailyEntryForm" class="mt-4 space-y-4">
-        
-        <!-- Date Selector -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Tareekh (Date)</label>
-          <input type="date" id="inputDate" required class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition">
-        </div>
-
-        <!-- Cash vs Online Breakdown -->
-        <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-3.5 space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-white uppercase tracking-wider">Bikri Channels (Cash & UPI)</span>
-            <span id="modalGrossTotalBadge" class="text-xs font-black text-amber-300">Total: ₹0</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2.5">
-            <!-- Cash Input -->
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-300 mb-1">💵 Cash (Dukan Drawer)</label>
-              <div class="relative">
-                <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs font-bold">₹</span>
-                <input type="number" id="inputCash" min="0" step="1" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-6 pr-2 py-2 text-sm font-bold text-white focus:outline-none focus:border-emerald-500">
-              </div>
-            </div>
-
-            <!-- Online / UPI Input -->
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-300 mb-1">📲 Online (UPI / Bank)</label>
-              <div class="relative">
-                <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs font-bold">₹</span>
-                <input type="number" id="inputUpi" min="0" step="1" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-6 pr-2 py-2 text-sm font-bold text-white focus:outline-none focus:border-blue-500">
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick chips -->
-          <div class="flex flex-wrap gap-1.5 pt-1">
-            <span class="text-[10px] text-slate-400 self-center">Quick total:</span>
-            <button type="button" class="quick-gross-btn text-[11px] px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700" data-cash="200" data-upi="0">₹200 Cash</button>
-            <button type="button" class="quick-gross-btn text-[11px] px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700" data-cash="500" data-upi="100">₹600 Mix</button>
-            <button type="button" class="quick-gross-btn text-[11px] px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700" data-cash="700" data-upi="300">₹1,000 Mix</button>
-          </div>
-        </div>
-
-        <!-- Step 0: Restock Amount -->
-        <div class="bg-red-950/20 border border-red-900/40 rounded-2xl p-3.5 space-y-2">
-          <div class="flex items-center justify-between">
-            <div>
-              <label class="text-xs font-bold text-red-300 flex items-center gap-1">
-                <span>🛑 Step 0: Maal Kharidi (Restock)</span>
-              </label>
-              <p class="text-[10px] text-red-300/70">Dukan me naya maal lane ka kharch (Ra's al-Mal)</p>
-            </div>
-            <div class="w-28 relative">
-              <span class="absolute left-2 top-2 text-xs font-bold text-red-400">₹</span>
-              <input type="number" id="inputRestock" min="0" step="1" placeholder="0" class="w-full bg-slate-900 border border-red-700/60 rounded-xl pl-5 pr-2 py-1.5 text-sm font-bold text-red-300 focus:outline-none focus:border-red-400 text-right">
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between pt-1 border-t border-red-900/30 text-xs">
-            <span class="text-slate-300 font-semibold">Net Munafa (Available Real Profit):</span>
-            <span id="calculatedNetProfitBadge" class="font-extrabold text-emerald-400 text-sm">₹0</span>
-          </div>
-        </div>
-
-        <!-- MANUAL POTS ALLOCATION + DAILY SPENT BREAKDOWN -->
-        <div class="bg-slate-800/40 border border-slate-700/70 rounded-2xl p-3.5 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-white uppercase tracking-wider">Bantwara & Kharch (Add & Spent)</span>
-            <button type="button" id="suggestSplitBtn" class="text-[11px] text-emerald-400 hover:text-emerald-300 font-medium underline">
-              Auto-Suggest Rounded ₹
-            </button>
-          </div>
-          <p class="text-[11px] text-slate-400">
-            Green box me daalein kitna rupya <strong>jama kiya</strong>, aur Red box me likhein aaj isme se <strong>kitna kharch hua</strong>.
-          </p>
-
-          <!-- Pot 1A: Home / Nafaqah -->
-          <div class="bg-slate-900/70 border border-emerald-900/40 rounded-xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-bold text-emerald-300">🏠 Pot 1A: Ghar Kharch (Nafaqah)</p>
-                <p class="text-[10px] text-slate-400">Suggested ~65% | Actual: <strong id="pctFamily" class="text-emerald-400">0%</strong></p>
-              </div>
-              <span id="familyDayNetIndicator" class="text-[11px] font-bold text-slate-300">Bacha: ₹0</span>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800">
-              <div>
-                <label class="block text-[10px] font-semibold text-emerald-400 mb-0.5">➕ Jama Kiya (Added)</label>
-                <div class="relative">
-                  <span class="absolute left-2.5 top-2 text-xs font-bold text-emerald-400">₹</span>
-                  <input type="number" id="inputFamily" min="0" step="1" placeholder="0" class="manual-pot-input w-full bg-slate-800 border border-slate-700 rounded-xl pl-6 pr-2 py-1.5 text-sm font-bold text-white focus:outline-none focus:border-emerald-500 text-right">
-                </div>
-              </div>
-              <div>
-                <label class="block text-[10px] font-semibold text-red-400 mb-0.5">➖ Aaj Kharch Hua (Spent)</label>
-                <div class="relative">
-                  <span class="absolute left-2.5 top-2 text-xs font-bold text-red-400">₹</span>
-                  <input type="number" id="inputSpentFamily" min="0" step="1" placeholder="0" class="manual-spent-input w-full bg-slate-800 border border-red-900/40 rounded-xl pl-6 pr-2 py-1.5 text-sm font-bold text-red-300 focus:outline-none focus:border-red-400 text-right">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pot 1B: Emergency Box & Medicine -->
-          <div class="bg-slate-900/70 border border-teal-900/40 rounded-xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-bold text-teal-300">🛡️ Pot 1B: Dawa & Emergency Box</p>
-                <p class="text-[10px] text-slate-400">Suggested ~15% | Actual: <strong id="pctEmergency" class="text-teal-300">0%</strong></p>
-              </div>
-              <span id="emergencyDayNetIndicator" class="text-[11px] font-bold text-slate-300">Bacha: ₹0</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800">
-              <div>
-                <label class="block text-[10px] font-semibold text-teal-400 mb-0.5">➕ Jama Kiya (Added)</label>
-                <div class="relative">
-                  <span class="absolute left-2.5 top-2 text-xs font-bold text-teal-300">₹</span>
-                  <input type="number" id="inputEmergency" min="0" step="1" placeholder="0" class="manual-pot-input w-full bg-slate-800 border border-slate-700 rounded-xl pl-6 pr-2 py-1.5 text-sm font-bold text-white focus:outline-none focus:border-teal-500 text-right">
-                </div>
-              </div>
-              <div>
-                <label class="block text-[10px] font-semibold text-red-400 mb-0.5">➖ Dawa/Kharch Hua (Spent)</label>
-                <div class="relative">
-                  <span class="absolute left-2.5 top-2 text-xs font-bold text-red-400">₹</span>
-                  <input type="number" id="inputSpentEmergency" min="0" step="1" placeholder="0" class="manual-spent-input w-full bg-slate-800 border border-red-900/40 rounded-xl pl-6 pr-2 py-1.5 text-sm font-bold text-red-300 focus:outline-none focus:border-red-400 text-right">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pot 2: Shop Buffer & Debt -->
-          <div class="bg-slate-900/70 border border-blue-900/40 rounded-xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-bold text-blue-300">💼 Pot 2: Shop Buffer / Karza Clear</p>
-                <p class="text-[10px] text-slate-400">Suggested ~15% | Actual: <strong id="pctBuffer" class="text-blue-300">0%</strong></p>
-              </div>
-              <span id="bufferDayNetIndicator" class="text-[11px] font-bold text-slate-300">Bacha: ₹0</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800">
-              <div>
-                <label class="block text-[10px] font-semibold text-blue-400 mb-0.5">➕ Jama Kiya (Added)</label>
-                <div class="relative">
-                  <span class="absolute left-2.5 top-2 text-xs font-bold text-blue-300">₹</span>
-                  <input type="number" id="inputBuffer" min="0" step="1" placeholder="0" class="manual-pot-input w-full bg-slate-800 border border-slate-700 rounded-xl pl-6 pr-2 py-1.5 text-sm font-bold text-white focus:outline-none focus:border-blue-500 text-right">
-                </div>
-              </div>
-              <div>
-                <label class="block text-[10px] font-semibold text-red-400 mb-0.5">➖ Karz/Buffer Kharch</label>
-                <div class="relative">
-                  <span class="absolute left-2.5 top-2 text-xs font-bold text-red-400">₹</span>
-                  <input type="number" id="inputSpentBuffer" min="0" step="1" placeholder="0" class="manual-spent-input w-full bg-slate-800 border border-red-900/40 rounded-xl pl-6 pr-2 py-1.5 text-sm font-bold text-red-300 focus:outline-none focus:border-red-400 text-right">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pot 3: Sadaqah Gullak -->
-          <div class="bg-slate-900/70 border border-amber-900/40 rounded-xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-bold text-amber-300">🤲 Pot 3: Sadaqah Gullak (Barakah)</p>
-                <p class="text-[10px] text-slate-400">Suggested ~5% | Actual: <strong id="pctSadaqah" class="text-amber-300">0%</strong></p>
-              </div>
-              <span id="sadaqahDayNetIndicator" class="text-[11px] font-bold text-slate-300">Gullak me: ₹0</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800">
-              <div>
-                <label class="block text-[10px] font-semibold text-amber-400 mb-0.5">➕ Gullak Me Daala</label>
-                <div class="relative">
-                  <span class="absolute left-2.5 top-2 text-xs font-bold text-amber-300">₹</span>
-                  <input type="number" id="inputSadaqah" min="0" step="1" placeholder="0" class="manual-pot-input w-full bg-slate-800 border border-slate-700 rounded-xl pl-6 pr-2 py-1.5 text-sm font-bold text-white focus:outline-none focus:border-amber-500 text-right">
-                </div>
-              </div>
-              <div>
-                <label class="block text-[10px] font-semibold text-red-400 mb-0.5">➖ Zarooratmand Ko Diya</label>
-                <div class="relative">
-                  <span class="absolute left-2.5 top-2 text-xs font-bold text-red-400">₹</span>
-                  <input type="number" id="inputSpentSadaqah" min="0" step="1" placeholder="0" class="manual-spent-input w-full bg-slate-800 border border-red-900/40 rounded-xl pl-6 pr-2 py-1.5 text-sm font-bold text-red-300 focus:outline-none focus:border-red-400 text-right">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- BALANCE CHECK INDICATOR -->
-          <div id="balanceStatusBar" class="p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between bg-slate-800 text-slate-300">
-            <span id="balanceStatusText">Bacha Hua Profit (Unallocated):</span>
-            <span id="balanceStatusAmount" class="font-bold text-emerald-400">₹0</span>
-          </div>
-        </div>
-
-        <!-- Optional Note -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Choti Note (Optional)</label>
-          <input type="text" id="inputNote" placeholder="e.g. ₹150 ration sabzi, ₹50 dawa khareedi" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-        </div>
-
-        <!-- Buttons -->
-        <div class="flex gap-2 pt-2">
-          <button type="button" id="deleteEntryBtn" class="hidden px-4 py-2.5 rounded-xl bg-red-900/40 hover:bg-red-800/60 border border-red-700/50 text-red-200 text-xs font-semibold transition">
-            Mitao (Delete)
-          </button>
-          <button type="submit" id="saveSubmitBtn" class="flex-1 touch-target bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-bold text-sm py-3 px-4 rounded-xl shadow-lg shadow-emerald-950/50 transition">
-            Save Record (Mehfooz Karein)
-          </button>
-        </div>
-
-      </form>
     </div>
-  </div>
+    <div class="glass-card p-3 rounded-xl">
+      <div class="text-[11px] text-slate-400">Dukan Maal (Restock)</div>
+      <div id="sum-restock" class="text-lg font-bold text-rose-400 mt-1">₹0</div>
+      <div class="text-[10px] text-slate-400 mt-1">Ra's al-Mal (Separate)</div>
+    </div>
+    <div class="glass-card p-3 rounded-xl">
+      <div class="text-[11px] text-slate-400">Mahana Net Munafa</div>
+      <div id="sum-profit" class="text-lg font-bold text-emerald-400 mt-1">₹0</div>
+      <div class="text-[10px] text-slate-400 mt-1">Bikri minus Maal</div>
+    </div>
+    <div class="glass-card p-3 rounded-xl">
+      <div class="text-[11px] text-slate-400">Mahana Kharch (Pots)</div>
+      <div id="sum-spent-total" class="text-lg font-bold text-rose-300 mt-1">₹0</div>
+      <div class="text-[10px] text-slate-400 mt-1">Ghar + Dawai + Diya</div>
+    </div>
+  </section>
 
-  <!-- MONTH-END AUDIT & SPENT DASHBOARD MODAL -->
-  <div id="auditModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg max-h-[92vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+  <!-- Calendar Navigator -->
+  <section class="glass-card p-4 rounded-xl mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 id="cal-month-title" class="text-sm font-bold text-slate-200">Month Calendar</h3>
+      <div class="flex items-center gap-1.5">
+        <button onclick="changeMonth(-1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs">&lt;</button>
+        <button onclick="goToday()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs">Today</button>
+        <button onclick="changeMonth(1)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-slate-300 text-xs">&gt;</button>
+      </div>
+    </div>
+    <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400 mb-2 font-semibold">
+      <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+    </div>
+    <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+  </section>
+
+  <!-- Modals -->
+
+  <!-- 1. Daily Entry Modal -->
+  <div id="entry-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
         <div>
-          <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Hisab Kitab Audit</span>
-          <h3 id="auditMonthTitle" class="text-base font-bold text-white flex items-center gap-2">
-            <span>📊</span> Mahana Kharch, Bachat & Standing Balance
-          </h3>
+          <h3 class="text-base font-bold text-amber-400">Rozana Hisab & Pot Allocation</h3>
+          <p id="entry-date-label" class="text-xs text-slate-400 mt-0.5">Date</p>
         </div>
-        <button id="closeAuditModalBtn" class="p-1.5 text-slate-400 hover:text-white rounded-lg">✕</button>
+        <button onclick="closeModal('entry-modal')" class="text-slate-400 hover:text-white text-lg">✕</button>
       </div>
 
-      <p class="text-xs text-slate-300">
-        Is mahine kitna daala, kitna kharch kiya, aur har section me kitna paisa bacha hua hai:
-      </p>
-
-      <div class="space-y-3">
-        <!-- Family Audit Card -->
-        <div class="bg-slate-800/60 border border-emerald-900/40 rounded-2xl p-3.5 space-y-1.5">
-          <div class="flex justify-between items-center text-xs font-bold text-emerald-300">
-            <span>🏠 Ghar Kharch (Nafaqah)</span>
-            <span id="auditFamilyNet" class="text-sm font-extrabold text-emerald-400">Net: +₹0</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1 border-t border-slate-700/60">
-            <div>Daala: <b id="auditFamilyIn" class="text-white">₹0</b></div>
-            <div>Kharch Kiya: <b id="auditFamilyOut" class="text-red-400">₹0</b></div>
-          </div>
-        </div>
-
-        <!-- Emergency / Medicine Audit Card -->
-        <div class="bg-slate-800/60 border border-teal-900/40 rounded-2xl p-3.5 space-y-1.5">
-          <div class="flex justify-between items-center text-xs font-bold text-teal-300">
-            <span>🛡️ Dawa & Emergency Box</span>
-            <span id="auditEmergencyNet" class="text-sm font-extrabold text-teal-400">Net: +₹0</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1 border-t border-slate-700/60">
-            <div>Daala: <b id="auditEmergencyIn" class="text-white">₹0</b></div>
-            <div>Dawa/Kharch: <b id="auditEmergencyOut" class="text-red-400">₹0</b></div>
-          </div>
-        </div>
-
-        <!-- Shop Buffer / Debt Card -->
-        <div class="bg-slate-800/60 border border-blue-900/40 rounded-2xl p-3.5 space-y-1.5">
-          <div class="flex justify-between items-center text-xs font-bold text-blue-300">
-            <span>💼 Dukan Buffer / Karza</span>
-            <span id="auditBufferNet" class="text-sm font-extrabold text-blue-400">Net: +₹0</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1 border-t border-slate-700/60">
-            <div>Daala: <b id="auditBufferIn" class="text-white">₹0</b></div>
-            <div>Kharch/Cleared: <b id="auditBufferOut" class="text-red-400">₹0</b></div>
-          </div>
-        </div>
-
-        <!-- Sadaqah Card -->
-        <div class="bg-slate-800/60 border border-amber-900/40 rounded-2xl p-3.5 space-y-1.5">
-          <div class="flex justify-between items-center text-xs font-bold text-amber-300">
-            <span>🤲 Sadaqah Gullak</span>
-            <span id="auditSadaqahNet" class="text-sm font-extrabold text-amber-400">Bacha: ₹0</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-300 pt-1 border-t border-slate-700/60">
-            <div>Gullak Me Daala: <b id="auditSadaqahIn" class="text-white">₹0</b></div>
-            <div>Zarooratmand Ko Diya: <b id="auditSadaqahOut" class="text-red-400">₹0</b></div>
-          </div>
-        </div>
-
-        <!-- Grand Total Summary -->
-        <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-3.5 flex justify-between items-center">
+      <!-- Sales Inputs -->
+      <div class="space-y-3 mb-4">
+        <div class="grid grid-cols-2 gap-2">
           <div>
-            <p class="text-[11px] font-bold text-slate-300">Mahine Ka Kul Bacha Paisa</p>
-            <p class="text-[10px] text-slate-400">Total Inflow minus Total Outflow</p>
+            <label class="text-[11px] text-slate-400">Cash Bikri (₹)</label>
+            <input type="number" id="inp-cash" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-emerald-500" value="0">
           </div>
-          <span id="auditGrandNet" class="text-lg font-black text-emerald-300">₹0</span>
+          <div>
+            <label class="text-[11px] text-slate-400">Online/UPI Bikri (₹)</label>
+            <input type="number" id="inp-upi" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-sky-500" value="0">
+          </div>
         </div>
-      </div>
-
-      <button id="dismissAuditModalBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs">
-        Band Karein (Close)
-      </button>
-    </div>
-  </div>
-
-  <!-- CLOUD AUTO-SYNC MODAL (MULTI-DEVICE LAPTOP + MOBILE) -->
-  <div id="syncModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md max-h-[92vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <div>
-          <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Laptop & Mobile Sync</span>
-          <h3 class="text-base font-bold text-white flex items-center gap-2 mt-0.5">
-            <span>☁️</span> Real-Time Cloud Sync (100% Free)
-          </h3>
+          <label class="text-[11px] text-rose-400">Dukan Maal / Restock Cost (₹)</label>
+          <input type="number" id="inp-restock" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-rose-900/40 rounded-lg px-2.5 py-1.5 text-sm text-rose-300 focus:outline-rose-500" value="0">
         </div>
-        <button id="closeSyncModalBtn" class="p-1 text-slate-400 hover:text-white rounded-lg">✕</button>
-      </div>
-
-      <div class="text-xs text-slate-300 space-y-2">
-        <p>
-          Is setup ke baad aap chahe <strong>Laptop se hisab likhein</strong> ya <strong>Mobile se</strong>, dono me turant bina kisi upload/download ke live data sync ho jayega!
-        </p>
-      </div>
-
-      <div class="space-y-3">
-        <!-- Sync Key / Passcode -->
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700 space-y-1.5">
-          <label class="block text-[11px] font-bold text-emerald-300">
-            🔑 Aapka Secret Sync Code / Account Name:
-          </label>
-          <input type="text" id="syncSecretKeyInput" placeholder="e.g. dukaan_hisab_786" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
-          <p class="text-[10px] text-slate-400">
-            Dono devices (Laptop & Mobile) me yahi same code likhein taaki dono aapas me connect ho jayein.
-          </p>
-        </div>
-
-        <!-- Firebase Config JSON -->
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700 space-y-1.5">
-          <label class="block text-[11px] font-bold text-amber-300">
-            📋 Firebase Config JSON:
-          </label>
-          <textarea id="firebaseConfigInput" rows="5" placeholder='Paste your firebaseConfig object here:
-{
-  "apiKey": "AIzaSy...",
-  "authDomain": "...",
-  "projectId": "...",
-  "storageBucket": "...",
-  "messagingSenderId": "...",
-  "appId": "..."
-}' class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-[11px] font-mono text-emerald-300 focus:outline-none focus:border-emerald-500"></textarea>
-          <p class="text-[10px] text-slate-400">
-            Yeh config sirf pehli baar daalni hoti hai. Ek baar save hone ke baad browser ise yaad rakhta hai.
-          </p>
-        </div>
-
-        <!-- Connect Buttons -->
-        <div class="flex gap-2 pt-1">
-          <button id="saveCloudSyncBtn" class="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md">
-            <span>⚡</span> Connect & Sync Now
-          </button>
-          <button id="disconnectCloudBtn" class="py-2.5 px-3 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/60 font-semibold text-xs">
-            Disconnect
-          </button>
-        </div>
-
-        <!-- Connection State Display -->
-        <div id="cloudConnectionMsg" class="text-center text-xs py-1.5 text-slate-400">
-          Status: Local storage active
+        <div class="bg-slate-800/60 p-2.5 rounded-lg flex items-center justify-between text-xs">
+          <span class="text-slate-400">Aj Ka Saaf Munafa (Net Profit):</span>
+          <span id="label-net-profit" class="font-bold text-emerald-400 text-sm">₹0</span>
         </div>
       </div>
 
-      <button id="dismissSyncModalBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs">
-        Band Karein (Close)
-      </button>
-    </div>
-  </div>
+      <!-- Pot Allocation & Spent Inputs -->
+      <div class="border-t border-slate-800 pt-3 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-300">Pot Allocation & Daily Spent</span>
+          <span id="label-unallocated" class="text-[11px] text-amber-400">Baaki: ₹0</span>
+        </div>
 
-  <!-- BACKUP & RESTORE MODAL -->
-  <div id="backupModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>💾</span> Backup & Restore (Data Suraksha)
-        </h3>
-        <button id="closeBackupModalBtn" class="p-1 text-slate-400 hover:text-white rounded-lg">✕</button>
+        <!-- Family -->
+        <div class="bg-slate-800/40 p-2 rounded-lg space-y-1">
+          <span class="text-xs text-slate-300 font-medium">🏠 Ghar (Nafaqah)</span>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="inp-fam-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-emerald-300">
+            <input type="number" id="inp-fam-out" placeholder="Kharch (Out ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          </div>
+        </div>
+
+        <!-- Emergency -->
+        <div class="bg-slate-800/40 p-2 rounded-lg space-y-1">
+          <span class="text-xs text-slate-300 font-medium">🛡️ Dawa / Emergency</span>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="inp-eme-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-sky-300">
+            <input type="number" id="inp-eme-out" placeholder="Kharch (Out ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          </div>
+        </div>
+
+        <!-- Business Buffer -->
+        <div class="bg-slate-800/40 p-2 rounded-lg space-y-1">
+          <span class="text-xs text-slate-300 font-medium">💼 Dukan Buffer / Karz</span>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="inp-buf-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300">
+            <input type="number" id="inp-buf-out" placeholder="Kharch (Out ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          </div>
+        </div>
+
+        <!-- Sadaqah -->
+        <div class="bg-slate-800/40 p-2 rounded-lg space-y-1">
+          <span class="text-xs text-slate-300 font-medium">🤲 Sadaqah Gullak</span>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="inp-sad-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-purple-300">
+            <input type="number" id="inp-sad-out" placeholder="Kharch / Diya (₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          </div>
+        </div>
       </div>
 
-      <p class="text-xs text-slate-300">
-        Kayi baar phone temporary viewer me data mita deta hai. Isliye apna data yahan se file me download karke mehfooz rakh sakte hain.
-      </p>
-
-      <div class="space-y-3">
-        <!-- Download JSON -->
-        <button id="downloadJsonBackupBtn" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-white text-xs flex items-center justify-center gap-2 shadow-md">
-          <span>📥</span> Download Full Data Backup (.json)
+      <div class="mt-4 flex gap-2">
+        <button onclick="saveDailyEntry()" class="flex-1 btn-gold text-white font-semibold py-2 rounded-lg text-xs shadow-md">
+          Save Hisab
         </button>
-
-        <!-- Restore JSON -->
-        <div class="p-3 bg-slate-800/60 border border-slate-700 rounded-xl space-y-2">
-          <p class="text-[11px] font-semibold text-slate-300">Purana Backup Wapas Dalein (Restore):</p>
-          <input type="file" id="restoreFileInput" accept=".json" class="text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-700 file:text-white hover:file:bg-slate-600">
-        </div>
+        <button onclick="closeModal('entry-modal')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs hover:bg-slate-700">
+          Cancel
+        </button>
       </div>
-
-      <button id="dismissBackupModalBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs">
-        Band Karein (Close)
-      </button>
     </div>
   </div>
 
-  <!-- APP INSTALL / PERMANENT SETUP MODAL -->
-  <div id="installModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative space-y-4">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <span>📲</span> Data Kabhi Na Mite Uska Tarika
-        </h3>
-        <button id="closeInstallModalBtn" class="p-1 text-slate-400 hover:text-white rounded-lg">✕</button>
+  <!-- 2. Month Audit Modal -->
+  <div id="audit-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl p-5">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+        <h3 id="audit-modal-title" class="text-sm font-bold text-amber-400">Month-End Audit Summary</h3>
+        <button onclick="closeModal('audit-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
-
-      <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
-        <div class="bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/30">
-          <p class="font-bold text-emerald-300 mb-1">🌟 Best & Permanent Tareeqa (1-Minute):</p>
-          <ol class="list-decimal list-inside space-y-1">
-            <li>Apne browser me <strong>tiiny.host</strong> par jayein.</li>
-            <li>Yeh `index.html` file wahan upload karein.</li>
-            <li>Woh aapko ek permanent link de dega.</li>
-            <li>Uss link ko Chrome me kholkar <strong>3 dots (⋮)</strong> se <strong>Add to Home screen</strong> karein. Fir data <strong>kabhi nahi hatega!</strong></li>
-          </ol>
-        </div>
-
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700">
-          <p class="font-bold text-amber-300 mb-1">⚠️ Agar direct file khol rahe hain:</p>
-          <p>WhatsApp se seedha na kholein. File ko phone ke <strong>Files App</strong> se Chrome me kholein, ya roz upar <strong>"Backup"</strong> button se ek copy download kar lein.</p>
-        </div>
-      </div>
-
-      <button id="dismissInstallModalBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs">
-        Samajh Gaya (Close)
-      </button>
+      <div id="audit-content" class="space-y-3 text-xs"></div>
     </div>
   </div>
 
-  <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-800 border border-emerald-500/50 text-white text-xs px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
-    <span class="text-emerald-400 text-sm">✓</span>
-    <span id="toastMessage">Record saved!</span>
+  <!-- 3. Sync Settings Modal -->
+  <div id="sync-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-5">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+        <h3 class="text-sm font-bold text-amber-400">Cloud Sync (Firebase)</h3>
+        <button onclick="closeModal('sync-modal')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="text-slate-400">Store / Passcode Identifier</label>
+          <input type="text" id="sync-id" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white mt-1" value="umar_shop_786">
+        </div>
+        <p class="text-[11px] text-slate-400">Yehi Passcode laptop aur phone dono me same rakhein taaki live sync ho sake.</p>
+        <button onclick="updateSyncId()" class="w-full btn-emerald text-white py-2 rounded-lg font-medium text-xs mt-2">
+          Sync Connected Devices
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
-    const STORAGE_KEY = 'barakah_money_daily_records_v2';
-    const SYNC_CONFIG_KEY = 'barakah_money_firebase_config';
-    const SYNC_SECRET_KEY = 'barakah_money_sync_secret';
+    // Embedded Firebase Config (Configured for project 'barakah-money')
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCOyMS8IurWt3PknKrxWwp-jLwv25cC7g0",
+      authDomain: "barakah-money.firebaseapp.com",
+      projectId: "barakah-money",
+      storageBucket: "barakah-money.firebasestorage.app",
+      messagingSenderId: "189802742792",
+      appId: "1:189802742792:web:17ed2c09665c9dbe84fdbd"
+    };
 
-    let records = {};
-    let currentDisplayDate = new Date();
-    let selectedDateStr = formatDate(new Date());
+    let ledger = {};
+    let activeDateStr = getTodayStr();
+    let currentViewDate = new Date();
+    let db = null;
+    let syncDocId = localStorage.getItem("bm_sync_id") || "umar_shop_786";
 
-    // Cloud Sync State
-    let cloudDb = null;
-    let cloudAuth = null;
-    let cloudUnsubscribe = null;
-    let isCloudConnected = false;
-    let currentSyncSecret = '';
-
-    function formatDate(d) {
-/* ... existing code ... -->
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      const msgEl = document.getElementById('toastMessage');
-      msgEl.textContent = msg;
-      toast.classList.remove('opacity-0', 'pointer-events-none');
-      setTimeout(() => {
-        toast.classList.add('opacity-0', 'pointer-events-none');
-      }, 2800);
+    function getTodayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    // CLOUD SYNC INITIALIZATION & LISTENERS
-    function updateCloudBadge(status) {
-      const badge = document.getElementById('cloudStatusBadge');
-      const msg = document.getElementById('cloudConnectionMsg');
-      if (!badge) return;
-
-      if (status === 'connected') {
-        badge.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-500/50';
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ☁️ Live Cloud Sync';
-        if (msg) msg.innerHTML = '<span class="text-emerald-400 font-semibold">✓ Connected! Live real-time sync chal raha hai.</span>';
-      } else if (status === 'connecting') {
-        badge.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded-md bg-amber-950/80 text-amber-300 border border-amber-500/50';
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Connecting...';
-        if (msg) msg.innerHTML = '<span class="text-amber-300">Connecting to cloud...</span>';
-      } else {
-        badge.className = 'inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded-md bg-slate-800 text-slate-400 border border-slate-700';
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Offline / Local';
-        if (msg) msg.innerHTML = '<span class="text-slate-400">Status: Offline / Local Mode</span>';
-      }
-    }
-
-    async function initCloudSync(cfgString, secretKey) {
-      if (!window.FirebaseLib) {
-        console.warn('Firebase library not ready yet');
-        return;
-      }
-
+    // Initialize Firebase Cloud Sync
+    function initFirebase() {
+      const badge = document.getElementById("sync-status-badge");
       try {
-        let cleanCfg = cfgString.trim();
-        // Allow user to paste standard JS object or JSON
-        if (cleanCfg.startsWith('const firebaseConfig =')) {
-          cleanCfg = cleanCfg.replace('const firebaseConfig =', '').trim().replace(/;$/, '');
+        if (!firebase.apps.length) {
+          firebase.initializeApp(FIREBASE_CONFIG);
         }
-        
-        let configObj;
-        try {
-          configObj = JSON.parse(cleanCfg);
-        } catch {
-          // Fallback parsing if keys are unquoted
-          configObj = (new Function(`return ${cleanCfg}`))();
-        }
+        db = firebase.firestore();
 
-        if (!configObj || !configObj.projectId) {
-          alert('Firebase config sahi nahi hai. Kripya pura snippet paste karein.');
-          return;
-        }
+        firebase.auth().signInAnonymously().then(() => {
+          badge.textContent = "☁️ Live Cloud Sync";
+          badge.className = "text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700";
 
-        updateCloudBadge('connecting');
-        const { initializeApp, getAuth, signInAnonymously, getFirestore, doc, onSnapshot } = window.FirebaseLib;
-
-        // Initialize Firebase app safely
-        const app = initializeApp(configObj, 'BarakahApp_' + Date.now());
-        cloudAuth = getAuth(app);
-        cloudDb = getFirestore(app);
-
-        await signInAnonymously(cloudAuth);
-
-        currentSyncSecret = (secretKey || 'default_vault').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
-        const docRef = doc(cloudDb, 'barakah_sync_vaults', currentSyncSecret);
-
-        // Real-time listener for incoming changes from Laptop or Mobile
-        if (cloudUnsubscribe) cloudUnsubscribe();
-        cloudUnsubscribe = onSnapshot(docRef, (snap) => {
-          if (snap.exists()) {
-            const remoteData = snap.data();
-            if (remoteData && remoteData.records) {
-              records = remoteData.records;
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-              renderCalendar();
+          // Real-time listener
+          db.collection("accounts").doc(syncDocId).onSnapshot((doc) => {
+            if (doc.exists && doc.data() && doc.data().ledger) {
+              ledger = doc.data().ledger;
+              localStorage.setItem("bm_ledger", JSON.stringify(ledger));
+              renderAll();
             }
-          } else {
-            // First time setup: push existing local records to cloud
-            pushRecordsToCloud();
-          }
-          isCloudConnected = true;
-          updateCloudBadge('connected');
-        }, (err) => {
-          console.error('Firestore sync error:', err);
-          updateCloudBadge('offline');
-          isCloudConnected = false;
+          }, (err) => {
+            console.warn("Firestore sync warning:", err);
+            badge.textContent = "Offline (Local)";
+          });
+        }).catch((authErr) => {
+          console.warn("Auth note:", authErr);
+          badge.textContent = "Cloud Active";
         });
-
-        // Store configuration in device storage
-        localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(configObj));
-        localStorage.setItem(SYNC_SECRET_KEY, currentSyncSecret);
-        showToast('☁️ Cloud connect ho gaya! Ab laptop & mobile auto-sync hain.');
       } catch (err) {
-        console.error('Cloud Init Error:', err);
-        updateCloudBadge('offline');
-        alert('Cloud se connect hone me masla hua: ' + err.message);
+        console.error("Firebase init failed:", err);
+        badge.textContent = "Offline (Local)";
       }
     }
 
-    async function pushRecordsToCloud() {
-      if (!isCloudConnected || !cloudDb || !currentSyncSecret) return;
-      try {
-        const { doc, setDoc } = window.FirebaseLib;
-        const docRef = doc(cloudDb, 'barakah_sync_vaults', currentSyncSecret);
-        await setDoc(docRef, {
-          records: records,
-          lastUpdated: new Date().toISOString()
-        }, { merge: true });
-      } catch (e) {
-        console.warn('Could not push to cloud, will keep locally:', e);
+    function pushToCloud() {
+      if (!db) return;
+      db.collection("accounts").doc(syncDocId).set({
+        ledger: ledger,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true }).catch(e => console.error("Cloud push failed:", e));
+    }
+
+    function loadLocal() {
+      const saved = localStorage.getItem("bm_ledger");
+      if (saved) {
+        try { ledger = JSON.parse(saved); } catch (e) { ledger = {}; }
       }
     }
 
-    function checkSavedCloudConfig() {
-      const savedCfg = localStorage.getItem(SYNC_CONFIG_KEY);
-      const savedSecret = localStorage.getItem(SYNC_SECRET_KEY);
-      if (savedCfg && savedSecret) {
-        document.getElementById('firebaseConfigInput').value = savedCfg;
-        document.getElementById('syncSecretKeyInput').value = savedSecret;
-        initCloudSync(savedCfg, savedSecret);
+    function saveLocal() {
+      localStorage.setItem("bm_ledger", JSON.stringify(ledger));
+      pushToCloud();
+    }
+
+    function renderAll() {
+      renderVaults();
+      renderMonthSummary();
+      renderCalendar();
+    }
+
+    // Running Cumulative Vaults
+    function renderVaults() {
+      let fin = 0, fout = 0;
+      let ein = 0, eout = 0;
+      let bin = 0, bout = 0;
+      let sin = 0, sout = 0;
+
+      Object.values(ledger).forEach(e => {
+        fin += Number(e.famIn || 0); fout += Number(e.famOut || 0);
+        ein += Number(e.emeIn || 0); eout += Number(e.emeOut || 0);
+        bin += Number(e.bufIn || 0); bout += Number(e.bufOut || 0);
+        sin += Number(e.sadIn || 0); sout += Number(e.sadOut || 0);
+      });
+
+      document.getElementById("vault-family").textContent = "₹" + (fin - fout).toLocaleString("en-IN");
+      document.getElementById("vault-family-in").textContent = "₹" + fin.toLocaleString("en-IN");
+      document.getElementById("vault-family-out").textContent = "₹" + fout.toLocaleString("en-IN");
+
+      document.getElementById("vault-emergency").textContent = "₹" + (ein - eout).toLocaleString("en-IN");
+      document.getElementById("vault-emergency-in").textContent = "₹" + ein.toLocaleString("en-IN");
+      document.getElementById("vault-emergency-out").textContent = "₹" + eout.toLocaleString("en-IN");
+
+      document.getElementById("vault-buffer").textContent = "₹" + (bin - bout).toLocaleString("en-IN");
+      document.getElementById("vault-buffer-in").textContent = "₹" + bin.toLocaleString("en-IN");
+      document.getElementById("vault-buffer-out").textContent = "₹" + bout.toLocaleString("en-IN");
+
+      document.getElementById("vault-sadaqah").textContent = "₹" + (sin - sout).toLocaleString("en-IN");
+      document.getElementById("vault-sadaqah-in").textContent = "₹" + sin.toLocaleString("en-IN");
+      document.getElementById("vault-sadaqah-out").textContent = "₹" + sout.toLocaleString("en-IN");
+    }
+
+    // Month Summaries
+    function renderMonthSummary() {
+      const y = currentViewDate.getFullYear();
+      const m = currentViewDate.getMonth() + 1;
+      const prefix = `${y}-${String(m).padStart(2, '0')}`;
+
+      let sales = 0, cash = 0, upi = 0, restock = 0, profit = 0, spent = 0;
+
+      Object.keys(ledger).forEach(k => {
+        if (k.startsWith(prefix)) {
+          const e = ledger[k];
+          const c = Number(e.cash || 0);
+          const u = Number(e.upi || 0);
+          const r = Number(e.restock || 0);
+          sales += (c + u);
+          cash += c;
+          upi += u;
+          restock += r;
+          profit += ((c + u) - r);
+          spent += (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.bufOut || 0) + Number(e.sadOut || 0));
+        }
+      });
+
+      document.getElementById("sum-sales").textContent = "₹" + sales.toLocaleString("en-IN");
+      document.getElementById("sum-cash").textContent = "₹" + cash.toLocaleString("en-IN");
+      document.getElementById("sum-upi").textContent = "₹" + upi.toLocaleString("en-IN");
+      document.getElementById("sum-restock").textContent = "₹" + restock.toLocaleString("en-IN");
+      document.getElementById("sum-profit").textContent = "₹" + profit.toLocaleString("en-IN");
+      document.getElementById("sum-spent-total").textContent = "₹" + spent.toLocaleString("en-IN");
+    }
+
+    // Calendar
+    function renderCalendar() {
+      const grid = document.getElementById("calendar-grid");
+      grid.innerHTML = "";
+
+      const y = currentViewDate.getFullYear();
+      const m = currentViewDate.getMonth();
+      const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      document.getElementById("cal-month-title").textContent = `${months[m]} ${y}`;
+
+      const firstDay = new Date(y, m, 1).getDay();
+      const totalDays = new Date(y, m + 1, 0).getDate();
+      const todayStr = getTodayStr();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        grid.appendChild(empty);
+      }
+
+      for (let d = 1; d <= totalDays; d++) {
+        const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const entry = ledger[dStr];
+        const isToday = (dStr === todayStr);
+
+        const cell = document.createElement("button");
+        cell.className = `p-1.5 rounded-lg text-left text-xs transition border flex flex-col justify-between h-14 ${
+          entry ? "bg-slate-800/90 border-slate-700" : "bg-slate-900/40 border-slate-800/60"
+        } ${isToday ? "ring-1 ring-amber-500" : ""}`;
+
+        cell.onclick = () => openEntryModal(dStr);
+
+        let inner = `<span class="text-[10px] ${isToday ? 'text-amber-400 font-bold' : 'text-slate-400'}">${d}</span>`;
+        if (entry) {
+          const net = (Number(entry.cash || 0) + Number(entry.upi || 0)) - Number(entry.restock || 0);
+          inner += `<span class="text-[10px] font-bold text-emerald-400">₹${net}</span>`;
+        }
+        cell.innerHTML = inner;
+        grid.appendChild(cell);
       }
     }
 
-    const inputCash = document.getElementById('inputCash');
-/* ... existing code ... -->
-      records[dateKey] = {
-        sales: grossSales,
-        cash: cash,
-        upi: upi,
-        restock: restock,
-        netProfit: netProfit,
-        familyNafaqah: fam,
-        emergency: emg,
-        shopBuffer: buf,
-        sadaqah: sad,
-        spentFamily: spFam,
-        spentEmergency: spEmg,
-        spentBuffer: spBuf,
-        spentSadaqah: spSad,
-        note: inputNote.value.trim(),
-        updatedAt: new Date().toISOString()
+    function changeMonth(delta) {
+      currentViewDate.setMonth(currentViewDate.getMonth() + delta);
+      renderAll();
+    }
+
+    function goToday() {
+      currentViewDate = new Date();
+      renderAll();
+    }
+
+    // Entry Modal Management
+    function openEntryModal(dateStr) {
+      activeDateStr = dateStr || getTodayStr();
+      document.getElementById("entry-date-label").textContent = `Tareekh: ${activeDateStr}`;
+      
+      const e = ledger[activeDateStr] || {};
+      document.getElementById("inp-cash").value = e.cash || 0;
+      document.getElementById("inp-upi").value = e.upi || 0;
+      document.getElementById("inp-restock").value = e.restock || 0;
+
+      document.getElementById("inp-fam-in").value = e.famIn || "";
+      document.getElementById("inp-fam-out").value = e.famOut || "";
+      document.getElementById("inp-eme-in").value = e.emeIn || "";
+      document.getElementById("inp-eme-out").value = e.emeOut || "";
+      document.getElementById("inp-buf-in").value = e.bufIn || "";
+      document.getElementById("inp-buf-out").value = e.bufOut || "";
+      document.getElementById("inp-sad-in").value = e.sadIn || "";
+      document.getElementById("inp-sad-out").value = e.sadOut || "";
+
+      calcNetProfit();
+      document.getElementById("entry-modal").classList.remove("hidden");
+      document.getElementById("entry-modal").classList.add("flex");
+    }
+
+    function calcNetProfit() {
+      const c = Number(document.getElementById("inp-cash").value) || 0;
+      const u = Number(document.getElementById("inp-upi").value) || 0;
+      const r = Number(document.getElementById("inp-restock").value) || 0;
+      const profit = (c + u) - r;
+      document.getElementById("label-net-profit").textContent = "₹" + profit.toLocaleString("en-IN");
+      calcPots();
+    }
+
+    function calcPots() {
+      const c = Number(document.getElementById("inp-cash").value) || 0;
+      const u = Number(document.getElementById("inp-upi").value) || 0;
+      const r = Number(document.getElementById("inp-restock").value) || 0;
+      const profit = (c + u) - r;
+
+      const f = Number(document.getElementById("inp-fam-in").value) || 0;
+      const e = Number(document.getElementById("inp-eme-in").value) || 0;
+      const b = Number(document.getElementById("inp-buf-in").value) || 0;
+      const s = Number(document.getElementById("inp-sad-in").value) || 0;
+
+      const unalloc = profit - (f + e + b + s);
+      const label = document.getElementById("label-unallocated");
+      label.textContent = `Baaki Munafa: ₹${unalloc}`;
+      label.className = `text-[11px] ${unalloc < 0 ? 'text-rose-400 font-bold' : 'text-amber-400'}`;
+    }
+
+    function saveDailyEntry() {
+      ledger[activeDateStr] = {
+        cash: Number(document.getElementById("inp-cash").value) || 0,
+        upi: Number(document.getElementById("inp-upi").value) || 0,
+        restock: Number(document.getElementById("inp-restock").value) || 0,
+        famIn: Number(document.getElementById("inp-fam-in").value) || 0,
+        famOut: Number(document.getElementById("inp-fam-out").value) || 0,
+        emeIn: Number(document.getElementById("inp-eme-in").value) || 0,
+        emeOut: Number(document.getElementById("inp-eme-out").value) || 0,
+        bufIn: Number(document.getElementById("inp-buf-in").value) || 0,
+        bufOut: Number(document.getElementById("inp-buf-out").value) || 0,
+        sadIn: Number(document.getElementById("inp-sad-in").value) || 0,
+        sadOut: Number(document.getElementById("inp-sad-out").value) || 0
       };
 
-      const success = saveRecords();
-      if (success) {
-        pushRecordsToCloud();
-        closeEntryModal();
-        renderCalendar();
-        showToast(`Hisab & Kharch dono save ho gaye! 🤲`);
+      saveLocal();
+      renderAll();
+      closeModal("entry-modal");
+    }
+
+    function openMonthAudit() {
+      const y = currentViewDate.getFullYear();
+      const m = currentViewDate.getMonth() + 1;
+      const prefix = `${y}-${String(m).padStart(2, '0')}`;
+
+      let fin = 0, fout = 0, ein = 0, eout = 0, bin = 0, bout = 0, sin = 0, sout = 0;
+      Object.keys(ledger).forEach(k => {
+        if (k.startsWith(prefix)) {
+          const e = ledger[k];
+          fin += Number(e.famIn || 0); fout += Number(e.famOut || 0);
+          ein += Number(e.emeIn || 0); eout += Number(e.emeOut || 0);
+          bin += Number(e.bufIn || 0); bout += Number(e.bufOut || 0);
+          sin += Number(e.sadIn || 0); sout += Number(e.sadOut || 0);
+        }
+      });
+
+      const content = document.getElementById("audit-content");
+      content.innerHTML = `
+        <div class="bg-slate-800 p-2.5 rounded-lg space-y-1">
+          <div class="font-bold text-emerald-400">🏠 Ghar (Nafaqah)</div>
+          <div class="flex justify-between text-slate-300"><span>Jama: ₹${fin}</span><span>Kharch: ₹${fout}</span><span>Bacha: ₹${fin - fout}</span></div>
+        </div>
+        <div class="bg-slate-800 p-2.5 rounded-lg space-y-1">
+          <div class="font-bold text-sky-400">🛡️ Dawa / Emergency</div>
+          <div class="flex justify-between text-slate-300"><span>Jama: ₹${ein}</span><span>Kharch: ₹${eout}</span><span>Bacha: ₹${ein - eout}</span></div>
+        </div>
+        <div class="bg-slate-800 p-2.5 rounded-lg space-y-1">
+          <div class="font-bold text-amber-400">💼 Dukan Buffer</div>
+          <div class="flex justify-between text-slate-300"><span>Jama: ₹${bin}</span><span>Kharch: ₹${bout}</span><span>Bacha: ₹${bin - bout}</span></div>
+        </div>
+        <div class="bg-slate-800 p-2.5 rounded-lg space-y-1">
+          <div class="font-bold text-purple-400">🤲 Sadaqah Gullak</div>
+          <div class="flex justify-between text-slate-300"><span>Jama: ₹${sin}</span><span>Diya: ₹${sout}</span><span>Bacha: ₹${sin - sout}</span></div>
+        </div>
+      `;
+      document.getElementById("audit-modal").classList.remove("hidden");
+      document.getElementById("audit-modal").classList.add("flex");
+    }
+
+    function openSyncModal() {
+      document.getElementById("sync-id").value = syncDocId;
+      document.getElementById("sync-modal").classList.remove("hidden");
+      document.getElementById("sync-modal").classList.add("flex");
+    }
+
+    function updateSyncId() {
+      const val = document.getElementById("sync-id").value.trim();
+      if (val) {
+        syncDocId = val;
+        localStorage.setItem("bm_sync_id", val);
+        initFirebase();
+        closeModal("sync-modal");
       }
-    });
+    }
 
-    // Delete Record
-    deleteBtn.addEventListener('click', () => {
-      const dateKey = inputDate.value;
-      if (records[dateKey]) {
-        delete records[dateKey];
-        saveRecords();
-        pushRecordsToCloud();
-        closeEntryModal();
-        renderCalendar();
-        showToast('Record delete ho gaya.');
-      }
-    });
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
+      document.getElementById(id).classList.remove("flex");
+    }
 
-    document.getElementById('todayQuickBtn').addEventListener('click', () => {
-/* ... existing code ... -->
-    document.getElementById('dismissAuditModalBtn').addEventListener('click', () => auditModal.classList.add('hidden'));
-
-    // Cloud Sync Modal triggers
-    const syncModal = document.getElementById('syncModal');
-    document.getElementById('openSyncModalBtn').addEventListener('click', () => {
-      syncModal.classList.remove('hidden');
-    });
-    document.getElementById('closeSyncModalBtn').addEventListener('click', () => {
-      syncModal.classList.add('hidden');
-    });
-    document.getElementById('dismissSyncModalBtn').addEventListener('click', () => {
-      syncModal.classList.add('hidden');
-    });
-
-    document.getElementById('saveCloudSyncBtn').addEventListener('click', () => {
-      const cfg = document.getElementById('firebaseConfigInput').value;
-      const secret = document.getElementById('syncSecretKeyInput').value;
-      if (!cfg.trim() || !secret.trim()) {
-        alert('Kripya apna Sync Code aur Firebase Config dono bharein.');
-        return;
-      }
-      initCloudSync(cfg, secret);
-    });
-
-    document.getElementById('disconnectCloudBtn').addEventListener('click', () => {
-      if (cloudUnsubscribe) cloudUnsubscribe();
-      isCloudConnected = false;
-      cloudDb = null;
-      cloudAuth = null;
-      localStorage.removeItem(SYNC_CONFIG_KEY);
-      localStorage.removeItem(SYNC_SECRET_KEY);
-      updateCloudBadge('offline');
-      document.getElementById('firebaseConfigInput').value = '';
-      document.getElementById('syncSecretKeyInput').value = '';
-      showToast('Cloud disconnect ho gaya. Ab data sirf local save hoga.');
-    });
-
-    // Data Management Modal (Backup & Restore)
-    const backupModal = document.getElementById('backupModal');
-/* ... existing code ... -->
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Barakah_Daily_Hisab_${formatDate(new Date())}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Excel/CSV Backup save ho gaya!');
-    });
-
+    // Initialize on launch
     window.onload = function() {
-      checkStorageStatus();
-      loadRecords();
-      renderCalendar();
-      setTimeout(checkSavedCloudConfig, 600);
+      loadLocal();
+      renderAll();
+      initFirebase();
     };
   </script>
 </body>
