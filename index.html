@@ -13,7 +13,6 @@
     .glass-card { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
     .btn-gold { background: linear-gradient(135deg, #d97706, #b45309); }
     .btn-emerald { background: linear-gradient(135deg, #059669, #047857); }
-    .btn-sky { background: linear-gradient(135deg, #0284c7, #0369a1); }
   </style>
 </head>
 <body class="p-3 sm:p-6 pb-20">
@@ -46,43 +45,43 @@
   <!-- Physical Money: Cash vs Online Bank Balances -->
   <section class="mb-5">
     <div class="flex items-center justify-between mb-2">
-      <h2 class="text-xs uppercase tracking-wider text-amber-400 font-bold">🔴 Physical Money in Hand & Bank (Drawer vs Bank Balance)</h2>
+      <h2 class="text-xs uppercase tracking-wider text-amber-400 font-bold">🔴 Physical Money in Hand & Bank</h2>
       <span class="text-[11px] text-slate-400">Running Total</span>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <!-- Cash in Hand -->
       <div class="glass-card p-4 rounded-xl border-l-4 border-l-emerald-500 shadow-md">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-emerald-400 flex items-center gap-1">💵 Cash in Hand (Gulle Ka Naqad)</span>
-          <span class="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-2 py-0.5 rounded">Drawer Tally</span>
+          <span class="text-xs font-semibold text-emerald-400">💵 Cash in Hand (Gulle Ka Naqad)</span>
+          <span class="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded">Drawer Tally</span>
         </div>
         <div id="physical-cash" class="text-2xl font-black text-slate-50 mt-1">₹0</div>
-        <div class="text-[11px] text-slate-400 mt-2 flex justify-between border-t border-slate-800/80 pt-2">
-          <span>Total Aamdan: <b id="physical-cash-in" class="text-emerald-300">₹0</b></span>
-          <span>Kharch/Gaya: <b id="physical-cash-out" class="text-rose-400">₹0</b></span>
+        <div class="text-[11px] text-slate-400 mt-2 flex justify-between border-t border-slate-800 pt-2">
+          <span>Total In: <b id="physical-cash-in" class="text-emerald-300">₹0</b></span>
+          <span>Kharch/Out: <b id="physical-cash-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
 
       <!-- Online / UPI Balance -->
       <div class="glass-card p-4 rounded-xl border-l-4 border-l-sky-500 shadow-md">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-sky-400 flex items-center gap-1">📱 Online / UPI Balance (Bank Account)</span>
-          <span class="text-[10px] bg-sky-950/80 text-sky-300 border border-sky-800/60 px-2 py-0.5 rounded">Karobar Bank</span>
+          <span class="text-xs font-semibold text-sky-400">📱 Online / UPI Balance (Bank Account)</span>
+          <span class="text-[10px] bg-sky-950 text-sky-300 border border-sky-800 px-2 py-0.5 rounded">Bank Tally</span>
         </div>
         <div id="physical-upi" class="text-2xl font-black text-slate-50 mt-1">₹0</div>
-        <div class="text-[11px] text-slate-400 mt-2 flex justify-between border-t border-slate-800/80 pt-2">
-          <span>Total Received: <b id="physical-upi-in" class="text-sky-300">₹0</b></span>
-          <span>Online Spent: <b id="physical-upi-out" class="text-rose-400">₹0</b></span>
+        <div class="text-[11px] text-slate-400 mt-2 flex justify-between border-t border-slate-800 pt-2">
+          <span>Total In: <b id="physical-upi-in" class="text-sky-300">₹0</b></span>
+          <span>Online Out: <b id="physical-upi-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Tijarat Vaults / Pots Running Balances -->
+  <!-- Tijarat Vaults -->
   <section class="mb-5">
     <div class="flex items-center justify-between mb-2">
-      <h2 class="text-xs uppercase tracking-wider text-slate-400 font-bold">Tijarat & Barakah Vaults (Pots Allotment)</h2>
-      <span class="text-[11px] text-slate-400">Continuous Running</span>
+      <h2 class="text-xs uppercase tracking-wider text-slate-400 font-bold">Tijarat & Barakah Vaults (Allotment)</h2>
+      <span class="text-[11px] text-slate-400">Running Total</span>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="glass-card p-3 rounded-xl border-l-4 border-l-emerald-500">
@@ -120,7 +119,7 @@
     </div>
   </section>
 
-  <!-- Month Aggregates Summary -->
+  <!-- Month Aggregates -->
   <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
     <div class="glass-card p-3 rounded-xl">
       <div class="text-[11px] text-slate-400">Mahana Bikri (Total Sales)</div>
@@ -132,17 +131,17 @@
     <div class="glass-card p-3 rounded-xl">
       <div class="text-[11px] text-slate-400">Dukan Maal (Restock)</div>
       <div id="sum-restock" class="text-lg font-bold text-rose-400 mt-0.5">₹0</div>
-      <div class="text-[10px] text-slate-400 mt-1">Ra's al-Mal (Separate)</div>
+      <div class="text-[10px] text-slate-400 mt-1">Ra's al-Mal</div>
     </div>
     <div class="glass-card p-3 rounded-xl">
       <div class="text-[11px] text-slate-400">Mahana Net Munafa</div>
       <div id="sum-profit" class="text-lg font-bold text-emerald-400 mt-0.5">₹0</div>
-      <div class="text-[10px] text-slate-400 mt-1">Bikri minus Maal Restock</div>
+      <div class="text-[10px] text-slate-400 mt-1">Bikri minus Maal</div>
     </div>
     <div class="glass-card p-3 rounded-xl">
-      <div class="text-[11px] text-slate-400">Mahana Kul Kharch (Spent)</div>
+      <div class="text-[11px] text-slate-400">Mahana Kul Kharch</div>
       <div id="sum-spent-total" class="text-lg font-bold text-rose-300 mt-0.5">₹0</div>
-      <div class="text-[10px] text-slate-400 mt-1">Ghar + Dawai + Reserve + Sadaqah</div>
+      <div class="text-[10px] text-slate-400 mt-1">Total Spent</div>
     </div>
   </section>
 
@@ -162,8 +161,7 @@
     <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
   </section>
 
-  <!-- MODALS -->
-
+  <!-- Modals -->
   <!-- 1. Daily Entry Modal -->
   <div id="entry-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
     <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-4 sm:p-5 max-h-[92vh] overflow-y-auto">
@@ -175,101 +173,86 @@
         <button onclick="closeModal('entry-modal')" class="text-slate-400 hover:text-white text-lg">✕</button>
       </div>
 
-      <!-- Step 1: Bikri (Income) -->
+      <!-- Bikri -->
       <div class="space-y-2 mb-3">
         <div class="text-xs font-bold text-emerald-400 uppercase tracking-wide">1. Aj Ki Bikri (Sales In)</div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="text-[11px] text-slate-300">💵 Cash Bikri (₹)</label>
-            <input type="number" id="inp-cash" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-emerald-500" value="0">
+            <input type="number" id="inp-cash" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white" value="0">
           </div>
           <div>
             <label class="text-[11px] text-slate-300">📱 Online / UPI Bikri (₹)</label>
-            <input type="number" id="inp-upi" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:outline-sky-500" value="0">
+            <input type="number" id="inp-upi" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-white" value="0">
           </div>
         </div>
         <div>
-          <label class="text-[11px] text-rose-300">📦 Dukan Maal / Restock Cost (Ra's al-Mal) (₹)</label>
-          <input type="number" id="inp-restock" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-rose-900/50 rounded-lg px-2.5 py-1.5 text-sm text-rose-300 focus:outline-rose-500" value="0">
+          <label class="text-[11px] text-rose-300">📦 Dukan Maal / Restock Cost (₹)</label>
+          <input type="number" id="inp-restock" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-rose-900/50 rounded-lg px-2.5 py-1.5 text-sm text-rose-300" value="0">
         </div>
         <div class="bg-slate-800/70 p-2.5 rounded-lg flex items-center justify-between text-xs">
-          <span class="text-slate-400">Aj Ka Saaf Munafa (Net Profit):</span>
+          <span class="text-slate-400">Aj Ka Saaf Munafa:</span>
           <span id="label-net-profit" class="font-bold text-emerald-400 text-sm">₹0</span>
         </div>
       </div>
 
-      <!-- Step 2: Physical Kharch (Where Money Left) -->
+      <!-- Kharch -->
       <div class="border-t border-slate-800 pt-3 space-y-2 mb-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-rose-400 uppercase tracking-wide">2. Aj Ka Kharch (Payment Mode)</span>
-          <span class="text-[10px] text-slate-400">Kahan se paisa bahar gaya?</span>
-        </div>
+        <div class="text-xs font-bold text-rose-400 uppercase tracking-wide">2. Aj Ka Kharch (Payment Mode)</div>
         <div class="grid grid-cols-2 gap-2">
           <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-800">
-            <label class="text-[11px] text-emerald-400 font-semibold">💵 Cash Gulle Se Kharch (₹)</label>
-            <input type="number" id="inp-cash-kharch" placeholder="₹0" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-rose-300 mt-1 focus:outline-rose-500">
-            <span class="text-[10px] text-slate-500">Rashan, local saman, etc</span>
+            <label class="text-[11px] text-emerald-400 font-semibold">💵 Cash Gulle Se Kharch</label>
+            <input type="number" id="inp-cash-kharch" placeholder="₹0" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-rose-300 mt-1">
           </div>
           <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-800">
-            <label class="text-[11px] text-sky-400 font-semibold">📱 Bank / UPI Se Kharch (₹)</label>
-            <input type="number" id="inp-upi-kharch" placeholder="₹0" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-rose-300 mt-1 focus:outline-rose-500">
-            <span class="text-[10px] text-slate-500">Wholesale, scan, transfer</span>
+            <label class="text-[11px] text-sky-400 font-semibold">📱 Bank / UPI Se Kharch</label>
+            <input type="number" id="inp-upi-kharch" placeholder="₹0" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-sm text-rose-300 mt-1">
           </div>
         </div>
       </div>
 
-      <!-- Step 3: Cash <-> Bank Internal Transfer -->
+      <!-- Transfer -->
       <div class="border-t border-slate-800 pt-3 space-y-2 mb-3">
         <div class="text-xs font-bold text-amber-400 uppercase tracking-wide">3. Cash ↔ Bank Transfer (Optional)</div>
         <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-800 grid grid-cols-2 gap-2 items-center">
           <div>
-            <label class="text-[11px] text-slate-300">Transfer Direction</label>
-            <select id="inp-transfer-dir" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white mt-1">
+            <select id="inp-transfer-dir" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white">
               <option value="none">Koi Transfer Nahi</option>
-              <option value="cash_to_bank">Gulle Se Cash Bank Me Jama Kiya</option>
-              <option value="bank_to_cash">Bank/ATM Se Nikaal Kar Gulle Me Dala</option>
+              <option value="cash_to_bank">Cash Bank Me Jama Kiya</option>
+              <option value="bank_to_cash">Bank Se Cash Nikala</option>
             </select>
           </div>
           <div>
-            <label class="text-[11px] text-slate-300">Transfer Amount (₹)</label>
-            <input type="number" id="inp-transfer-amt" placeholder="₹0" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300 mt-1">
+            <input type="number" id="inp-transfer-amt" placeholder="Amount (₹)" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300">
           </div>
         </div>
       </div>
 
-      <!-- Step 4: Vaults / Pots Allocation -->
+      <!-- Pots -->
       <div class="border-t border-slate-800 pt-3 space-y-2">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-purple-400 uppercase tracking-wide">4. Munafa Pots Me Jama & Spent</span>
+          <span class="text-xs font-bold text-purple-400 uppercase tracking-wide">4. Pots Allotment</span>
           <span id="label-unallocated" class="text-[11px] text-amber-400">Baaki Munafa: ₹0</span>
         </div>
-
-        <!-- Family -->
         <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
           <span class="text-xs text-slate-300 font-medium w-1/3">🏠 Ghar (Nafaqah)</span>
-          <input type="number" id="inp-fam-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-emerald-300">
-          <input type="number" id="inp-fam-out" placeholder="Kharch (Out ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          <input type="number" id="inp-fam-in" oninput="calcPots()" placeholder="In ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-emerald-300">
+          <input type="number" id="inp-fam-out" placeholder="Out ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
         </div>
-
-        <!-- Emergency -->
         <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
-          <span class="text-xs text-slate-300 font-medium w-1/3">🛡️ Dawa / Emergency</span>
-          <input type="number" id="inp-eme-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-sky-300">
-          <input type="number" id="inp-eme-out" placeholder="Kharch (Out ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          <span class="text-xs text-slate-300 font-medium w-1/3">🛡️ Dawa Shield</span>
+          <input type="number" id="inp-eme-in" oninput="calcPots()" placeholder="In ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-sky-300">
+          <input type="number" id="inp-eme-out" placeholder="Out ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
         </div>
-
-        <!-- Shop Reserve -->
         <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
           <span class="text-xs text-slate-300 font-medium w-1/3">💼 Dukan Reserve</span>
-          <input type="number" id="inp-buf-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300">
-          <input type="number" id="inp-buf-out" placeholder="Kharch (Out ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          <input type="number" id="inp-buf-in" oninput="calcPots()" placeholder="In ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-amber-300">
+          <input type="number" id="inp-buf-out" placeholder="Out ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
         </div>
-
-        <!-- Sadaqah -->
         <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
           <span class="text-xs text-slate-300 font-medium w-1/3">🤲 Sadaqah Gullak</span>
-          <input type="number" id="inp-sad-in" oninput="calcPots()" placeholder="Jama (In ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-purple-300">
-          <input type="number" id="inp-sad-out" placeholder="Diya (Out ₹)" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          <input type="number" id="inp-sad-in" oninput="calcPots()" placeholder="In ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-purple-300">
+          <input type="number" id="inp-sad-out" placeholder="Out ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
         </div>
       </div>
 
@@ -288,7 +271,7 @@
   <div id="audit-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
     <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-        <h3 id="audit-modal-title" class="text-sm font-bold text-amber-400">Month-End Physical & Vault Audit</h3>
+        <h3 class="text-sm font-bold text-amber-400">Month-End Audit</h3>
         <button onclick="closeModal('audit-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <div id="audit-content" class="space-y-4 text-xs"></div>
@@ -307,7 +290,6 @@
           <label class="text-slate-400">Store / Passcode Identifier</label>
           <input type="text" id="sync-id" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white mt-1" value="umar_shop_786">
         </div>
-        <p class="text-[11px] text-slate-400">Yehi Passcode laptop aur phone dono me same rakhein taaki live sync ho sake.</p>
         <button onclick="updateSyncId()" class="w-full btn-emerald text-white py-2 rounded-lg font-medium text-xs mt-2">
           Sync Connected Devices
         </button>
@@ -326,27 +308,32 @@
     };
 
     let ledger = {};
-    let activeDateStr = getTodayStr();
+    let activeDateStr = "";
     let currentViewDate = new Date();
     let db = null;
     let syncDocId = localStorage.getItem("bm_sync_id") || "umar_shop_786";
 
     function getTodayStr() {
       const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
     }
 
     function initFirebase() {
       const badge = document.getElementById("sync-status-badge");
       try {
-        if (!firebase.apps.length) {
+        if (!firebase.apps || !firebase.apps.length) {
           firebase.initializeApp(FIREBASE_CONFIG);
         }
         db = firebase.firestore();
 
         firebase.auth().signInAnonymously().then(() => {
-          badge.textContent = "☁️ Live Cloud Sync";
-          badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700";
+          if (badge) {
+            badge.textContent = "☁️ Live Cloud Sync";
+            badge.className = "text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700";
+          }
 
           db.collection("accounts").doc(syncDocId).onSnapshot((doc) => {
             if (doc.exists && doc.data() && doc.data().ledger) {
@@ -355,16 +342,16 @@
               renderAll();
             }
           }, (err) => {
-            console.warn("Firestore sync warning:", err);
-            badge.textContent = "Offline (Local)";
+            console.warn("Firestore listener error:", err);
+            if (badge) badge.textContent = "Offline (Local)";
           });
         }).catch((err) => {
-          console.warn("Auth note:", err);
-          badge.textContent = "Cloud Active";
+          console.warn("Auth error:", err);
+          if (badge) badge.textContent = "Cloud Active";
         });
       } catch (err) {
         console.error("Firebase init failed:", err);
-        badge.textContent = "Offline (Local)";
+        if (badge) badge.textContent = "Offline (Local)";
       }
     }
 
@@ -395,27 +382,30 @@
       renderCalendar();
     }
 
-    // 1. Physical Balances: Cash in Hand vs Bank UPI
     function renderPhysicalBalances() {
       let cashIn = 0, cashOut = 0;
       let upiIn = 0, upiOut = 0;
 
       Object.values(ledger).forEach(e => {
+        if (!e) return;
         const cIn = Number(e.cash || 0);
         const uIn = Number(e.upi || 0);
         cashIn += cIn;
         upiIn += uIn;
 
-        // Backward compatibility: agar purani entry me cashKharch mention na ho toh fallback
-        let cOut = (e.cashKharch !== undefined && e.cashKharch !== "") ? Number(e.cashKharch) : (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0));
-        let uOut = (e.upiKharch !== undefined && e.upiKharch !== "") ? Number(e.upiKharch) : (Number(e.restock || 0) + Number(e.bufOut || 0));
+        let cOut = (e.cashKharch !== undefined && e.cashKharch !== "" && Number(e.cashKharch) > 0) 
+                   ? Number(e.cashKharch) 
+                   : (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0));
 
-        // Transfers
+        let uOut = (e.upiKharch !== undefined && e.upiKharch !== "" && Number(e.upiKharch) > 0) 
+                   ? Number(e.upiKharch) 
+                   : (Number(e.restock || 0) + Number(e.bufOut || 0));
+
         const tDir = e.transferDir || "none";
         const tAmt = Number(e.transferAmt || 0);
         if (tDir === "cash_to_bank") {
           cOut += tAmt;
-          uIn += tAmt;
+          upiIn += tAmt;
         } else if (tDir === "bank_to_cash") {
           uOut += tAmt;
           cashIn += tAmt;
@@ -437,14 +427,11 @@
       document.getElementById("physical-upi-out").textContent = "₹" + upiOut.toLocaleString("en-IN");
     }
 
-    // 2. Vaults Cumulative
     function renderVaults() {
-      let fin = 0, fout = 0;
-      let ein = 0, eout = 0;
-      let bin = 0, bout = 0;
-      let sin = 0, sout = 0;
+      let fin = 0, fout = 0, ein = 0, eout = 0, bin = 0, bout = 0, sin = 0, sout = 0;
 
       Object.values(ledger).forEach(e => {
+        if (!e) return;
         fin += Number(e.famIn || 0); fout += Number(e.famOut || 0);
         ein += Number(e.emeIn || 0); eout += Number(e.emeOut || 0);
         bin += Number(e.bufIn || 0); bout += Number(e.bufOut || 0);
@@ -468,7 +455,6 @@
       document.getElementById("vault-sadaqah-out").textContent = "₹" + sout.toLocaleString("en-IN");
     }
 
-    // 3. Month Aggregates
     function renderMonthSummary() {
       const y = currentViewDate.getFullYear();
       const m = currentViewDate.getMonth() + 1;
@@ -477,8 +463,9 @@
       let sales = 0, cash = 0, upi = 0, restock = 0, profit = 0, spent = 0;
 
       Object.keys(ledger).forEach(k => {
-        if (k.startsWith(prefix)) {
+        if (k && k.startsWith(prefix)) {
           const e = ledger[k];
+          if (!e) return;
           const c = Number(e.cash || 0);
           const u = Number(e.upi || 0);
           const r = Number(e.restock || 0);
@@ -499,9 +486,9 @@
       document.getElementById("sum-spent-total").textContent = "₹" + spent.toLocaleString("en-IN");
     }
 
-    // 4. Calendar
     function renderCalendar() {
       const grid = document.getElementById("calendar-grid");
+      if (!grid) return;
       grid.innerHTML = "";
 
       const y = currentViewDate.getFullYear();
@@ -526,11 +513,11 @@
         const cell = document.createElement("button");
         cell.className = `p-1.5 rounded-lg text-left text-xs transition border flex flex-col justify-between h-14 ${
           entry ? "bg-slate-800/90 border-slate-700" : "bg-slate-900/40 border-slate-800/60"
-        } ${isToday ? "ring-1 ring-amber-500" : ""}`;
+        } ${isToday ? "ring-1 ring-amber-500 font-bold" : ""}`;
 
         cell.onclick = () => openEntryModal(dStr);
 
-        let inner = `<span class="text-[10px] ${isToday ? 'text-amber-400 font-bold' : 'text-slate-400'}">${d}</span>`;
+        let inner = `<span class="text-[10px] ${isToday ? 'text-amber-400' : 'text-slate-400'}">${d}</span>`;
         if (entry) {
           const net = (Number(entry.cash || 0) + Number(entry.upi || 0)) - Number(entry.restock || 0);
           inner += `<span class="text-[10px] font-bold text-emerald-400">₹${net}</span>`;
@@ -550,7 +537,6 @@
       renderAll();
     }
 
-    // Entry Modal
     function openEntryModal(dateStr) {
       activeDateStr = dateStr || getTodayStr();
       document.getElementById("entry-date-label").textContent = `Tareekh: ${activeDateStr}`;
@@ -630,26 +616,30 @@
       closeModal("entry-modal");
     }
 
-    // Month Audit Report
     function openMonthAudit() {
       const y = currentViewDate.getFullYear();
       const m = currentViewDate.getMonth() + 1;
       const prefix = `${y}-${String(m).padStart(2, '0')}`;
 
-      let mCashIn = 0, mCashOut = 0;
-      let mUpiIn = 0, mUpiOut = 0;
+      let mCashIn = 0, mCashOut = 0, mUpiIn = 0, mUpiOut = 0;
       let fin = 0, fout = 0, ein = 0, eout = 0, bin = 0, bout = 0, sin = 0, sout = 0;
 
       Object.keys(ledger).forEach(k => {
-        if (k.startsWith(prefix)) {
+        if (k && k.startsWith(prefix)) {
           const e = ledger[k];
+          if (!e) return;
           const cIn = Number(e.cash || 0);
           const uIn = Number(e.upi || 0);
           mCashIn += cIn;
           mUpiIn += uIn;
 
-          let cOut = (e.cashKharch !== undefined && e.cashKharch !== "") ? Number(e.cashKharch) : (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0));
-          let uOut = (e.upiKharch !== undefined && e.upiKharch !== "") ? Number(e.upiKharch) : (Number(e.restock || 0) + Number(e.bufOut || 0));
+          let cOut = (e.cashKharch !== undefined && e.cashKharch !== "" && Number(e.cashKharch) > 0) 
+                     ? Number(e.cashKharch) 
+                     : (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0));
+
+          let uOut = (e.upiKharch !== undefined && e.upiKharch !== "" && Number(e.upiKharch) > 0) 
+                     ? Number(e.upiKharch) 
+                     : (Number(e.restock || 0) + Number(e.bufOut || 0));
 
           const tDir = e.transferDir || "none";
           const tAmt = Number(e.transferAmt || 0);
@@ -683,13 +673,13 @@
               <tr class="text-slate-400 border-b border-slate-700">
                 <th class="py-1">Head</th>
                 <th>💵 Cash</th>
-                <th>📱 Bank (UPI)</th>
+                <th>📱 Bank</th>
                 <th>Total</th>
               </tr>
             </thead>
             <tbody class="text-slate-200 divide-y divide-slate-800">
               <tr>
-                <td class="py-1.5 text-emerald-400 font-medium">Bikri / Received</td>
+                <td class="py-1.5 text-emerald-400 font-medium">Bikri / In</td>
                 <td>₹${mCashIn.toLocaleString('en-IN')}</td>
                 <td>₹${mUpiIn.toLocaleString('en-IN')}</td>
                 <td class="font-bold">₹${(mCashIn + mUpiIn).toLocaleString('en-IN')}</td>
@@ -701,7 +691,7 @@
                 <td class="font-bold">₹${(mCashOut + mUpiOut).toLocaleString('en-IN')}</td>
               </tr>
               <tr class="font-bold text-amber-300">
-                <td class="py-1.5">Mahana Bacha</td>
+                <td class="py-1.5">Bacha Balance</td>
                 <td>₹${netMCash.toLocaleString('en-IN')}</td>
                 <td>₹${netMUpi.toLocaleString('en-IN')}</td>
                 <td class="text-emerald-400">₹${(netMCash + netMUpi).toLocaleString('en-IN')}</td>
@@ -711,7 +701,7 @@
         </div>
 
         <div class="space-y-2">
-          <div class="font-bold text-slate-300">Vaults Running Standing (Is Mahine)</div>
+          <div class="font-bold text-slate-300">Vaults Standing (Is Mahine)</div>
           <div class="bg-slate-800 p-2.5 rounded-lg flex justify-between text-[11px]">
             <span class="text-emerald-400 font-medium">🏠 Ghar (Nafaqah)</span>
             <span>Aya: ₹${fin} | Gaya: ₹${fout} | <b class="text-emerald-300">Bacha: ₹${fin - fout}</b></span>
