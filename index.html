@@ -57,8 +57,8 @@
         </div>
         <div id="physical-cash" class="text-2xl font-black text-slate-50 mt-1">₹0</div>
         <div class="text-[11px] text-slate-400 mt-2 flex justify-between border-t border-slate-800 pt-2">
-          <span>Total In: <b id="physical-cash-in" class="text-emerald-300">₹0</b></span>
-          <span>Kharch/Out: <b id="physical-cash-out" class="text-rose-400">₹0</b></span>
+          <span>Total Cash In: <b id="physical-cash-in" class="text-emerald-300">₹0</b></span>
+          <span>Cash Out: <b id="physical-cash-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
 
@@ -70,8 +70,8 @@
         </div>
         <div id="physical-upi" class="text-2xl font-black text-slate-50 mt-1">₹0</div>
         <div class="text-[11px] text-slate-400 mt-2 flex justify-between border-t border-slate-800 pt-2">
-          <span>Total In: <b id="physical-upi-in" class="text-sky-300">₹0</b></span>
-          <span>Online Out: <b id="physical-upi-out" class="text-rose-400">₹0</b></span>
+          <span>Total Bank In: <b id="physical-upi-in" class="text-sky-300">₹0</b></span>
+          <span>Bank Out: <b id="physical-upi-out" class="text-rose-400">₹0</b></span>
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@
         </div>
       </div>
       <div class="glass-card p-3 rounded-xl border-l-4 border-l-sky-500">
-        <div class="text-[11px] text-slate-400 font-medium">🛡️ Dawa / Health Shield</div>
+        <div class="text-[11px] text-slate-400 font-medium">🛡️ Emergency Reserve</div>
         <div id="vault-emergency" class="text-lg font-bold text-sky-400 mt-0.5">₹0</div>
         <div class="text-[10px] text-slate-400 mt-1 flex justify-between">
           <span>Aya: <b id="vault-emergency-in" class="text-slate-300">₹0</b></span>
@@ -173,7 +173,7 @@
         <button onclick="closeModal('entry-modal')" class="text-slate-400 hover:text-white text-lg">✕</button>
       </div>
 
-      <!-- Bikri -->
+      <!-- Step 1: Bikri -->
       <div class="space-y-2 mb-3">
         <div class="text-xs font-bold text-emerald-400 uppercase tracking-wide">1. Aj Ki Bikri (Sales In)</div>
         <div class="grid grid-cols-2 gap-2">
@@ -187,7 +187,7 @@
           </div>
         </div>
         <div>
-          <label class="text-[11px] text-rose-300">📦 Dukan Maal / Restock Cost (₹)</label>
+          <label class="text-[11px] text-rose-300">📦 Dukan Maal / Restock Cost (Ra's al-Mal) (₹)</label>
           <input type="number" id="inp-restock" oninput="calcNetProfit()" class="w-full bg-slate-800 border border-rose-900/50 rounded-lg px-2.5 py-1.5 text-sm text-rose-300" value="0">
         </div>
         <div class="bg-slate-800/70 p-2.5 rounded-lg flex items-center justify-between text-xs">
@@ -196,9 +196,12 @@
         </div>
       </div>
 
-      <!-- Kharch -->
+      <!-- Step 2: Physical Kharch -->
       <div class="border-t border-slate-800 pt-3 space-y-2 mb-3">
-        <div class="text-xs font-bold text-rose-400 uppercase tracking-wide">2. Aj Ka Kharch (Payment Mode)</div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-rose-400 uppercase tracking-wide">2. Asal Kharch (Kahan Se Gaya?)</span>
+          <span class="text-[10px] text-slate-400">Drawer/Bank se nikla paisa</span>
+        </div>
         <div class="grid grid-cols-2 gap-2">
           <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-800">
             <label class="text-[11px] text-emerald-400 font-semibold">💵 Cash Gulle Se Kharch</label>
@@ -211,15 +214,15 @@
         </div>
       </div>
 
-      <!-- Transfer -->
+      <!-- Step 3: Transfer -->
       <div class="border-t border-slate-800 pt-3 space-y-2 mb-3">
-        <div class="text-xs font-bold text-amber-400 uppercase tracking-wide">3. Cash ↔ Bank Transfer (Optional)</div>
+        <div class="text-xs font-bold text-amber-400 uppercase tracking-wide">3. Cash ↔ Bank Shift/Transfer (Optional)</div>
         <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-800 grid grid-cols-2 gap-2 items-center">
           <div>
             <select id="inp-transfer-dir" class="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-white">
               <option value="none">Koi Transfer Nahi</option>
-              <option value="cash_to_bank">Cash Bank Me Jama Kiya</option>
-              <option value="bank_to_cash">Bank Se Cash Nikala</option>
+              <option value="cash_to_bank">Gulle Se Cash Bank Me Jama Kiya</option>
+              <option value="bank_to_cash">Bank Se Nikaal Kar Gulle Me Dala</option>
             </select>
           </div>
           <div>
@@ -228,10 +231,10 @@
         </div>
       </div>
 
-      <!-- Pots -->
+      <!-- Step 4: Pots Allotment -->
       <div class="border-t border-slate-800 pt-3 space-y-2">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-purple-400 uppercase tracking-wide">4. Pots Allotment</span>
+          <span class="text-xs font-bold text-purple-400 uppercase tracking-wide">4. Munafa Pots Allotment</span>
           <span id="label-unallocated" class="text-[11px] text-amber-400">Baaki Munafa: ₹0</span>
         </div>
         <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
@@ -240,7 +243,7 @@
           <input type="number" id="inp-fam-out" placeholder="Out ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
         </div>
         <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
-          <span class="text-xs text-slate-300 font-medium w-1/3">🛡️ Dawa Shield</span>
+          <span class="text-xs text-slate-300 font-medium w-1/3">🛡️ Emergency Reserve</span>
           <input type="number" id="inp-eme-in" oninput="calcPots()" placeholder="In ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-sky-300">
           <input type="number" id="inp-eme-out" placeholder="Out ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
         </div>
@@ -252,7 +255,7 @@
         <div class="bg-slate-800/40 p-2 rounded-lg flex items-center justify-between gap-2">
           <span class="text-xs text-slate-300 font-medium w-1/3">🤲 Sadaqah Gullak</span>
           <input type="number" id="inp-sad-in" oninput="calcPots()" placeholder="In ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-purple-300">
-          <input type="number" id="inp-sad-out" placeholder="Out ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
+          <input type="number" id="inp-sad-out" placeholder="Diya ₹" class="w-1/3 bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-rose-300">
         </div>
       </div>
 
@@ -271,14 +274,14 @@
   <div id="audit-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
     <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-        <h3 class="text-sm font-bold text-amber-400">Month-End Audit</h3>
+        <h3 class="text-sm font-bold text-amber-400">Month-End Audit (Cash vs Bank Tally)</h3>
         <button onclick="closeModal('audit-modal')" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <div id="audit-content" class="space-y-4 text-xs"></div>
     </div>
   </div>
 
-  <!-- 3. Sync Settings Modal -->
+  <!-- 3. Sync Modal -->
   <div id="sync-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-3 z-50">
     <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-5">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
@@ -342,7 +345,7 @@
               renderAll();
             }
           }, (err) => {
-            console.warn("Firestore listener error:", err);
+            console.warn("Firestore error:", err);
             if (badge) badge.textContent = "Offline (Local)";
           });
         }).catch((err) => {
@@ -382,42 +385,50 @@
       renderCalendar();
     }
 
+    // 100% CLEAN CALCULATION: No double deduction, no restock confusion
     function renderPhysicalBalances() {
       let cashIn = 0, cashOut = 0;
       let upiIn = 0, upiOut = 0;
 
       Object.values(ledger).forEach(e => {
         if (!e) return;
-        const cIn = Number(e.cash || 0);
-        const uIn = Number(e.upi || 0);
-        cashIn += cIn;
-        upiIn += uIn;
+        const cBikri = Number(e.cash || 0);
+        const uBikri = Number(e.upi || 0);
+        
+        let cSpent = Number(e.cashKharch || 0);
+        let uSpent = Number(e.upiKharch || 0);
 
-        let cOut = 0;
-        let uOut = 0;
-
-        if (e.cashKharch !== undefined && e.cashKharch !== "") {
-          cOut = Number(e.cashKharch);
-        } else {
-          cOut = Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0);
-        }
-
-        if (e.upiKharch !== undefined && e.upiKharch !== "") {
-          uOut = Number(e.upiKharch);
+        // Fallback for old entries where user only entered pots
+        if (e.cashKharch === undefined && e.upiKharch === undefined) {
+          cSpent = Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0);
+          uSpent = 0;
         }
 
         const tDir = e.transferDir || "none";
         const tAmt = Number(e.transferAmt || 0);
-        if (tDir === "cash_to_bank" && tAmt > 0) {
-          cOut += tAmt;
-          upiIn += tAmt;
-        } else if (tDir === "bank_to_cash" && tAmt > 0) {
-          uOut += tAmt;
-          cashIn += tAmt;
+
+        // Calculate Cash Flow
+        let dayCashIn = cBikri;
+        let dayCashOut = cSpent;
+        if (tDir === "bank_to_cash" && tAmt > 0) {
+          dayCashIn += tAmt; // Bank se nikaal kar gulle me dala
+        } else if (tDir === "cash_to_bank" && tAmt > 0) {
+          dayCashOut += tAmt; // Gulle se nikal kar bank me dala
         }
 
-        cashOut += cOut;
-        upiOut += uOut;
+        // Calculate Online Bank Flow
+        let dayUpiIn = uBikri;
+        let dayUpiOut = uSpent;
+        if (tDir === "cash_to_bank" && tAmt > 0) {
+          dayUpiIn += tAmt; // Cash bank me jama hua
+        } else if (tDir === "bank_to_cash" && tAmt > 0) {
+          dayUpiOut += tAmt; // Bank se nikla
+        }
+
+        cashIn += dayCashIn;
+        cashOut += dayCashOut;
+        upiIn += dayUpiIn;
+        upiOut += dayUpiOut;
       });
 
       const netCash = cashIn - cashOut;
@@ -633,36 +644,40 @@
         if (k && k.startsWith(prefix)) {
           const e = ledger[k];
           if (!e) return;
-          const cIn = Number(e.cash || 0);
-          const uIn = Number(e.upi || 0);
-          mCashIn += cIn;
-          mUpiIn += uIn;
+          const cBikri = Number(e.cash || 0);
+          const uBikri = Number(e.upi || 0);
+          
+          let cSpent = Number(e.cashKharch || 0);
+          let uSpent = Number(e.upiKharch || 0);
 
-          let cOut = 0;
-          let uOut = 0;
-
-          if (e.cashKharch !== undefined && e.cashKharch !== "") {
-            cOut = Number(e.cashKharch);
-          } else {
-            cOut = Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0);
-          }
-
-          if (e.upiKharch !== undefined && e.upiKharch !== "") {
-            uOut = Number(e.upiKharch);
+          if (e.cashKharch === undefined && e.upiKharch === undefined) {
+            cSpent = Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0);
+            uSpent = 0;
           }
 
           const tDir = e.transferDir || "none";
           const tAmt = Number(e.transferAmt || 0);
-          if (tDir === "cash_to_bank" && tAmt > 0) {
-            cOut += tAmt;
-            mUpiIn += tAmt;
-          } else if (tDir === "bank_to_cash" && tAmt > 0) {
-            uOut += tAmt;
-            mCashIn += tAmt;
+
+          let dayCashIn = cBikri;
+          let dayCashOut = cSpent;
+          if (tDir === "bank_to_cash" && tAmt > 0) {
+            dayCashIn += tAmt;
+          } else if (tDir === "cash_to_bank" && tAmt > 0) {
+            dayCashOut += tAmt;
           }
 
-          mCashOut += cOut;
-          mUpiOut += uOut;
+          let dayUpiIn = uBikri;
+          let dayUpiOut = uSpent;
+          if (tDir === "cash_to_bank" && tAmt > 0) {
+            dayUpiIn += tAmt;
+          } else if (tDir === "bank_to_cash" && tAmt > 0) {
+            dayUpiOut += tAmt;
+          }
+
+          mCashIn += dayCashIn;
+          mCashOut += dayCashOut;
+          mUpiIn += dayUpiIn;
+          mUpiOut += dayUpiOut;
 
           fin += Number(e.famIn || 0); fout += Number(e.famOut || 0);
           ein += Number(e.emeIn || 0); eout += Number(e.emeOut || 0);
@@ -682,20 +697,20 @@
             <thead>
               <tr class="text-slate-400 border-b border-slate-700">
                 <th class="py-1">Head</th>
-                <th>💵 Cash</th>
-                <th>📱 Bank</th>
-                <th>Total</th>
+                <th>💵 Cash Flow</th>
+                <th>📱 Bank Flow</th>
+                <th>Total Balance</th>
               </tr>
             </thead>
             <tbody class="text-slate-200 divide-y divide-slate-800">
               <tr>
-                <td class="py-1.5 text-emerald-400 font-medium">Bikri / In</td>
+                <td class="py-1.5 text-emerald-400 font-medium">Kul Aaya (In)</td>
                 <td>₹${mCashIn.toLocaleString('en-IN')}</td>
                 <td>₹${mUpiIn.toLocaleString('en-IN')}</td>
                 <td class="font-bold">₹${(mCashIn + mUpiIn).toLocaleString('en-IN')}</td>
               </tr>
               <tr>
-                <td class="py-1.5 text-rose-400 font-medium">Kharch / Out</td>
+                <td class="py-1.5 text-rose-400 font-medium">Kul Gaya (Out)</td>
                 <td>₹${mCashOut.toLocaleString('en-IN')}</td>
                 <td>₹${mUpiOut.toLocaleString('en-IN')}</td>
                 <td class="font-bold">₹${(mCashOut + mUpiOut).toLocaleString('en-IN')}</td>
@@ -717,7 +732,7 @@
             <span>Aya: ₹${fin} | Gaya: ₹${fout} | <b class="text-emerald-300">Bacha: ₹${fin - fout}</b></span>
           </div>
           <div class="bg-slate-800 p-2.5 rounded-lg flex justify-between text-[11px]">
-            <span class="text-sky-400 font-medium">🛡️ Dawa Shield</span>
+            <span class="text-sky-400 font-medium">🛡️ Emergency Reserve</span>
             <span>Aya: ₹${ein} | Gaya: ₹${eout} | <b class="text-sky-300">Bacha: ₹${ein - eout}</b></span>
           </div>
           <div class="bg-slate-800 p-2.5 rounded-lg flex justify-between text-[11px]">
