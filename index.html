@@ -393,20 +393,25 @@
         cashIn += cIn;
         upiIn += uIn;
 
-        let cOut = (e.cashKharch !== undefined && e.cashKharch !== "" && Number(e.cashKharch) > 0) 
-                   ? Number(e.cashKharch) 
-                   : (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0));
+        let cOut = 0;
+        let uOut = 0;
 
-        let uOut = (e.upiKharch !== undefined && e.upiKharch !== "" && Number(e.upiKharch) > 0) 
-                   ? Number(e.upiKharch) 
-                   : (Number(e.restock || 0) + Number(e.bufOut || 0));
+        if (e.cashKharch !== undefined && e.cashKharch !== "") {
+          cOut = Number(e.cashKharch);
+        } else {
+          cOut = Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0);
+        }
+
+        if (e.upiKharch !== undefined && e.upiKharch !== "") {
+          uOut = Number(e.upiKharch);
+        }
 
         const tDir = e.transferDir || "none";
         const tAmt = Number(e.transferAmt || 0);
-        if (tDir === "cash_to_bank") {
+        if (tDir === "cash_to_bank" && tAmt > 0) {
           cOut += tAmt;
           upiIn += tAmt;
-        } else if (tDir === "bank_to_cash") {
+        } else if (tDir === "bank_to_cash" && tAmt > 0) {
           uOut += tAmt;
           cashIn += tAmt;
         }
@@ -633,20 +638,25 @@
           mCashIn += cIn;
           mUpiIn += uIn;
 
-          let cOut = (e.cashKharch !== undefined && e.cashKharch !== "" && Number(e.cashKharch) > 0) 
-                     ? Number(e.cashKharch) 
-                     : (Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0));
+          let cOut = 0;
+          let uOut = 0;
 
-          let uOut = (e.upiKharch !== undefined && e.upiKharch !== "" && Number(e.upiKharch) > 0) 
-                     ? Number(e.upiKharch) 
-                     : (Number(e.restock || 0) + Number(e.bufOut || 0));
+          if (e.cashKharch !== undefined && e.cashKharch !== "") {
+            cOut = Number(e.cashKharch);
+          } else {
+            cOut = Number(e.famOut || 0) + Number(e.emeOut || 0) + Number(e.sadOut || 0);
+          }
+
+          if (e.upiKharch !== undefined && e.upiKharch !== "") {
+            uOut = Number(e.upiKharch);
+          }
 
           const tDir = e.transferDir || "none";
           const tAmt = Number(e.transferAmt || 0);
-          if (tDir === "cash_to_bank") {
+          if (tDir === "cash_to_bank" && tAmt > 0) {
             cOut += tAmt;
             mUpiIn += tAmt;
-          } else if (tDir === "bank_to_cash") {
+          } else if (tDir === "bank_to_cash" && tAmt > 0) {
             uOut += tAmt;
             mCashIn += tAmt;
           }
